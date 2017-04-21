@@ -5,16 +5,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.telegram.telegrambots.api.interfaces.BotApiObject;
 import org.telegram.telegrambots.api.objects.inlinequery.ChosenInlineQuery;
 import org.telegram.telegrambots.api.objects.inlinequery.InlineQuery;
-import org.telegram.telegrambots.api.objects.payments.PreCheckoutQuery;
-import org.telegram.telegrambots.api.objects.payments.ShippingQuery;
 
 /**
  * @author Ruben Bermudez
  * @version 1.0
- *
- * This object represents an incoming update.
- *
- * @apiNote Only one of the optional parameters can be present in any given update.
+ * @brief This object represents an incoming update.
+ * Only one of the optional parameters can be present in any given update.
+ * @date 20 of June of 2015
  */
 public class Update implements BotApiObject {
     private static final String UPDATEID_FIELD = "update_id";
@@ -25,8 +22,6 @@ public class Update implements BotApiObject {
     private static final String EDITEDMESSAGE_FIELD = "edited_message";
     private static final String CHANNELPOST_FIELD = "channel_post";
     private static final String EDITEDCHANNELPOST_FIELD = "edited_channel_post";
-    private static final String SHIPPING_QUERY_FIELD = "shipping_query";
-    private static final String PRE_CHECKOUT_QUERY_FIELD = "pre_checkout_query";
 
     @JsonProperty(UPDATEID_FIELD)
     private Integer updateId;
@@ -44,10 +39,7 @@ public class Update implements BotApiObject {
     private Message channelPost; ///< Optional. New incoming channel post of any kind — text, photo, sticker, etc.
     @JsonProperty(EDITEDCHANNELPOST_FIELD)
     private Message editedChannelPost; ///< Optional. New version of a channel post that is known to the bot and was edited
-    @JsonProperty(SHIPPING_QUERY_FIELD)
-    private ShippingQuery shippingQuery; ///< Optional. New incoming shipping query. Only for invoices with flexible price
-    @JsonProperty(PRE_CHECKOUT_QUERY_FIELD)
-    private PreCheckoutQuery preCheckoutQuery; ///< Optional. New incoming pre-checkout query. Contains full information about checkout
+
 
     public Update() {
         super();
@@ -85,14 +77,6 @@ public class Update implements BotApiObject {
         return editedChannelPost;
     }
 
-    public ShippingQuery getShippingQuery() {
-        return shippingQuery;
-    }
-
-    public PreCheckoutQuery getPreCheckoutQuery() {
-        return preCheckoutQuery;
-    }
-
     public boolean hasMessage() {
         return message != null;
     }
@@ -121,14 +105,6 @@ public class Update implements BotApiObject {
         return editedChannelPost != null;
     }
 
-    public boolean hasShippingQuery() {
-        return shippingQuery != null;
-    }
-
-    public boolean hasPreCheckoutQuery() {
-        return preCheckoutQuery != null;
-    }
-
     @Override
     public String toString() {
         return "Update{" +
@@ -140,8 +116,6 @@ public class Update implements BotApiObject {
                 ", editedMessage=" + editedMessage +
                 ", channelPost=" + channelPost +
                 ", editedChannelPost=" + editedChannelPost +
-                ", shippingQuery=" + shippingQuery +
-                ", preCheckoutQuery=" + preCheckoutQuery +
                 '}';
     }
 }

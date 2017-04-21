@@ -49,8 +49,12 @@ public class SendGame extends BotApiMethod<Message> {
     private String chatId; ///< Unique identifier for the chat to send the message to (Or username for channels)
     @JsonProperty(GAMESHORTNAME_FIELD)
     private String gameShortName; ///< Short name of the game
+    /**
+     * Optional. Sends the message silently. iOS users will not receive a notification, Android
+     * users will receive a notification with no sound. Other apps coming soon
+     */
     @JsonProperty(DISABLENOTIFICATION_FIELD)
-    private Boolean disableNotification; ///< Optional. Sends the message silently. Users will receive a notification with no sound.
+    private Boolean disableNotification;
     @JsonProperty(REPLYTOMESSAGEID_FIELD)
     private Integer replyToMessageId; ///< Optional. If the message is a reply, ID of the original message
     @JsonProperty(REPLYMARKUP_FIELD)
