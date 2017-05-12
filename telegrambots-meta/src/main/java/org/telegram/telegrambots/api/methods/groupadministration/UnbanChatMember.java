@@ -14,9 +14,10 @@ import java.util.Objects;
 /**
  * @author Ruben Bermudez
  * @version 1.0
- * Use this method to unban a previously kicked user in a supergroup. The user will not
+ * @brief Use this method to unban a previously kicked user in a supergroup. The user will not
  * return to the group automatically, but will be able to join via link, etc. The bot must be an
  * administrator in the group for this to work. Returns True on success.
+ * @date 10 of April of 2016
  */
 public class UnbanChatMember extends BotApiMethod<Boolean> {
     public static final String PATH = "unbanchatmember";

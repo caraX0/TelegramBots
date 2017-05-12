@@ -25,10 +25,9 @@ import org.telegram.telegrambots.exceptions.TelegramApiValidationException;
 /**
  * @author Ruben Bermudez
  * @version 1.0
- *
- * Represents a Game
- *
- * @apiNote  This will only work in Telegram versions released after 1 October, 2016. Older clients will ignore them.
+ * @brief Represents a Game
+ * @note This will only work in Telegram versions released after 1 October, 2016. Older clients will ignore them.
+ * @date 27 of September 2016
  */
 public class InlineQueryResultGame implements InlineQueryResult {
 
@@ -96,8 +95,7 @@ public class InlineQueryResultGame implements InlineQueryResult {
     @Override
     public String toString() {
         return "InlineQueryResultGame{" +
-                "type='" + type + '\'' +
-                ", id='" + id + '\'' +
+                "id='" + id + '\'' +
                 ", gameShortName='" + gameShortName + '\'' +
                 ", replyMarkup=" + replyMarkup +
                 '}';

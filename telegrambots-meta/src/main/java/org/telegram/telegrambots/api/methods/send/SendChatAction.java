@@ -13,14 +13,13 @@ import org.telegram.telegrambots.exceptions.TelegramApiValidationException;
 import java.io.IOException;
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Ruben Bermudez
  * @version 1.0
- * Use this method when you need to tell the user that something is happening on the bot's
+ * @brief Use this method when you need to tell the user that something is happening on the bot's
  * side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram
  * clients clear its typing status).
+ * @date 20 of June of 2015
  */
 public class SendChatAction extends BotApiMethod<Boolean> {
 
@@ -32,26 +31,16 @@ public class SendChatAction extends BotApiMethod<Boolean> {
     @JsonProperty(CHATID_FIELD)
     private String chatId; ///< Unique identifier for the chat to send the message to (Or username for channels)
     /**
-     * Type of action to broadcast. Choose one, depending on what the user is about to receive: typing for text messages,
-     * upload_photo for photos, record_video or upload_video for videos, record_audio or upload_audio for audio files,
-     * upload_document for general files, find_location for location data,
-     * record_video_note or upload_video_note for video notes.
+     * Type of action to broadcast. Choose one, depending on what the user is about to receive:
+     * 'typing' for text messages 'upload_photo' for photos 'record_video' or 'upload_video' for
+     * videos 'record_audio' or 'upload_audio' for audio files 'upload_document' for general files,
+     * 'find_location' for location data.
      */
     @JsonProperty(ACTION_FIELD)
     private String action;
 
     public SendChatAction() {
         super();
-    }
-
-    public SendChatAction(String chatId, String action) {
-        this.chatId = checkNotNull(chatId);
-        this.action = checkNotNull(action);
-    }
-
-    public SendChatAction(Long chatId, String action) {
-        this.chatId = checkNotNull(chatId).toString();
-        this.action = checkNotNull(action);
     }
 
     public String getChatId() {
