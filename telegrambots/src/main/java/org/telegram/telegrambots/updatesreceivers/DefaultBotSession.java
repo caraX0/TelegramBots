@@ -18,7 +18,6 @@ import org.telegram.telegrambots.ApiConstants;
 import org.telegram.telegrambots.api.methods.updates.GetUpdates;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
-import org.telegram.telegrambots.bots.TelegramBatchLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.generics.*;
 import org.telegram.telegrambots.logging.BotLogger;
@@ -28,7 +27,7 @@ import java.io.InvalidObjectException;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidParameterException;
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 
@@ -53,7 +52,6 @@ public class DefaultBotSession implements BotSession {
     private String token;
     private int lastReceivedUpdate = 0;
     private DefaultBotOptions options;
-    private UpdatesSupplier updatesSupplier;
 
     @Inject
     public DefaultBotSession() {
@@ -69,7 +67,7 @@ public class DefaultBotSession implements BotSession {
 
         lastReceivedUpdate = 0;
 
-        readerThread = new ReaderThread(updatesSupplier);
+        readerThread = new ReaderThread();
         readerThread.setName(callback.getBotUsername() + " Telegram Connection");
         readerThread.start();
 
@@ -97,10 +95,6 @@ public class DefaultBotSession implements BotSession {
         if (callback != null) {
             callback.onClosing();
         }
-    }
-
-    public void setUpdatesSupplier(UpdatesSupplier updatesSupplier) {
-        this.updatesSupplier = updatesSupplier;
     }
 
     @Override
@@ -133,15 +127,9 @@ public class DefaultBotSession implements BotSession {
     }
 
     private class ReaderThread extends Thread implements UpdatesReader {
-
-        private final UpdatesSupplier updatesSupplier;
         private CloseableHttpClient httpclient;
         private ExponentialBackOff exponentialBackOff;
         private RequestConfig requestConfig;
-
-        public ReaderThread(UpdatesSupplier updatesSupplier) {
-            this.updatesSupplier = Optional.ofNullable(updatesSupplier).orElse(this::getUpdatesFromServer);
-        }
 
         @Override
         public synchronized void start() {
@@ -184,23 +172,62 @@ public class DefaultBotSession implements BotSession {
             setPriority(Thread.MIN_PRIORITY);
             while (running) {
                 try {
-                    List<Update> updates = updatesSupplier.getUpdates();
-                    if (updates.isEmpty()) {
-                        synchronized (this) {
-                            this.wait(500);
-                        }
-                    } else {
-                        updates.removeIf(x -> x.getUpdateId() < lastReceivedUpdate);
-                        lastReceivedUpdate = updates.parallelStream()
-                                .map(
-                                        Update::getUpdateId)
-                                .max(Integer::compareTo)
-                                .orElse(0);
-                        receivedUpdates.addAll(updates);
+                    GetUpdates request = new GetUpdates()
+                            .setLimit(100)
+                            .setTimeout(ApiConstants.GETUPDATES_TIMEOUT)
+                            .setOffset(lastReceivedUpdate + 1);
 
-                        synchronized (receivedUpdates) {
-                            receivedUpdates.notifyAll();
+                    if (options.getAllowedUpdates() != null) {
+                        request.setAllowedUpdates(options.getAllowedUpdates());
+                    }
+
+                    String url = options.getBaseUrl() + token + "/" + GetUpdates.PATH;
+                    //http client
+                    HttpPost httpPost = new HttpPost(url);
+                    httpPost.addHeader("charset", StandardCharsets.UTF_8.name());
+                    httpPost.setConfig(requestConfig);
+                    httpPost.setEntity(new StringEntity(objectMapper.writeValueAsString(request), ContentType.APPLICATION_JSON));
+
+                    try (CloseableHttpResponse response = httpclient.execute(httpPost)) {
+                        HttpEntity ht = response.getEntity();
+                        BufferedHttpEntity buf = new BufferedHttpEntity(ht);
+                        String responseContent = EntityUtils.toString(buf, StandardCharsets.UTF_8);
+
+                        if (response.getStatusLine().getStatusCode() >= 500) {
+                            BotLogger.warn(LOGTAG, responseContent);
+                            synchronized (this) {
+                                this.wait(500);
+                            }
+                        } else {
+                            try {
+                                List<Update> updates = request.deserializeResponse(responseContent);
+                                exponentialBackOff.reset();
+
+                                if (updates.isEmpty()) {
+                                    synchronized (this) {
+                                        this.wait(500);
+                                    }
+                                } else {
+                                    updates.removeIf(x -> x.getUpdateId() < lastReceivedUpdate);
+                                    lastReceivedUpdate = updates.parallelStream()
+                                            .map(
+                                                    Update::getUpdateId)
+                                            .max(Integer::compareTo)
+                                            .orElse(0);
+                                    receivedUpdates.addAll(updates);
+
+                                    synchronized (receivedUpdates) {
+                                        receivedUpdates.notifyAll();
+                                    }
+                                }
+                            } catch (JSONException e) {
+                                BotLogger.severe(responseContent, LOGTAG, e);
+                            }
                         }
+                    } catch (SocketTimeoutException e) {
+                        BotLogger.fine(LOGTAG, e);
+                    } catch (InvalidObjectException | TelegramApiRequestException e) {
+                        BotLogger.severe(LOGTAG, e);
                     }
                 } catch (InterruptedException e) {
                     if (!running) {
@@ -223,64 +250,6 @@ public class DefaultBotSession implements BotSession {
             }
             BotLogger.debug(LOGTAG, "Reader thread has being closed");
         }
-
-        private List<Update> getUpdatesFromServer() throws InterruptedException, Exception {
-            GetUpdates request = new GetUpdates()
-                    .setLimit(100)
-                    .setTimeout(ApiConstants.GETUPDATES_TIMEOUT)
-                    .setOffset(lastReceivedUpdate + 1);
-
-            if (options.getAllowedUpdates() != null) {
-                request.setAllowedUpdates(options.getAllowedUpdates());
-            }
-
-            String url = options.getBaseUrl() + token + "/" + GetUpdates.PATH;
-            //http client
-            HttpPost httpPost = new HttpPost(url);
-            httpPost.addHeader("charset", StandardCharsets.UTF_8.name());
-            httpPost.setConfig(requestConfig);
-            httpPost.setEntity(new StringEntity(objectMapper.writeValueAsString(request), ContentType.APPLICATION_JSON));
-
-            try (CloseableHttpResponse response = httpclient.execute(httpPost)) {
-                HttpEntity ht = response.getEntity();
-                BufferedHttpEntity buf = new BufferedHttpEntity(ht);
-                String responseContent = EntityUtils.toString(buf, StandardCharsets.UTF_8);
-
-                if (response.getStatusLine().getStatusCode() >= 500) {
-                    BotLogger.warn(LOGTAG, responseContent);
-                    synchronized (this) {
-                        this.wait(500);
-                    }
-                } else {
-                    try {
-                        List<Update> updates = request.deserializeResponse(responseContent);
-                        exponentialBackOff.reset();
-                        return updates;
-                    } catch (JSONException e) {
-                        BotLogger.severe(responseContent, LOGTAG, e);
-                    }
-                }
-            } catch (SocketTimeoutException e) {
-                BotLogger.fine(LOGTAG, e);
-            } catch (InvalidObjectException | TelegramApiRequestException e) {
-                BotLogger.severe(LOGTAG, e);
-            }
-            return Collections.emptyList();
-        }
-    }
-
-    public interface UpdatesSupplier {
-
-        List<Update> getUpdates() throws InterruptedException, Exception;
-    }
-
-    private List<Update> getUpdateList() {
-        List<Update> updates = new ArrayList<>();
-        for (Iterator<Update> it = receivedUpdates.iterator(); it.hasNext();) {
-            updates.add(it.next());
-            it.remove();
-        }
-        return updates;
     }
 
     private class HandlerThread extends Thread implements UpdatesHandler {
@@ -289,31 +258,17 @@ public class DefaultBotSession implements BotSession {
             setPriority(Thread.MIN_PRIORITY);
             while (running) {
                 try {
-                    if (callback instanceof TelegramBatchLongPollingBot) {
-                        List<Update> updates = getUpdateList();
-                        if (updates.isEmpty()) {
-                            synchronized (receivedUpdates) {
-                                receivedUpdates.wait();
-                                updates = getUpdateList();
-                                if (updates.isEmpty()) {
-                                    continue;
-                                }
+                    Update update = receivedUpdates.pollLast();
+                    if (update == null) {
+                        synchronized (receivedUpdates) {
+                            receivedUpdates.wait();
+                            update = receivedUpdates.pollLast();
+                            if (update == null) {
+                                continue;
                             }
                         }
-                        ((TelegramBatchLongPollingBot) callback).onUpdatesReceived(updates);
-                    } else {
-                        Update update = receivedUpdates.pollFirst();
-                        if (update == null) {
-                            synchronized (receivedUpdates) {
-                                receivedUpdates.wait();
-                                update = receivedUpdates.pollFirst();
-                                if (update == null) {
-                                    continue;
-                                }
-                            }
-                        }
-                        callback.onUpdateReceived(update);
                     }
+                    callback.onUpdateReceived(update);
                 } catch (InterruptedException e) {
                     BotLogger.debug(LOGTAG, e);
                 } catch (Exception e) {
