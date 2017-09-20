@@ -21,7 +21,6 @@ public class Chat implements BotApiObject {
     private static final String PHOTO_FIELD = "photo";
     private static final String DESCRIPTION_FIELD = "description";
     private static final String INVITELINK_FIELD = "invite_link";
-    private static final String PINNEDMESSAGE_FIELD = "pinned_message";
 
     private static final String USERCHATTYPE = "private";
     private static final String GROUPCHATTYPE = "group";
@@ -57,8 +56,6 @@ public class Chat implements BotApiObject {
     private String description; ///< Optional. Description, for supergroups and channel chats. Returned only in getChat.
     @JsonProperty(INVITELINK_FIELD)
     private String inviteLink; ///< Optional. Chat invite link, for supergroups and channel chats. Returned only in getChat.
-    @JsonProperty(PINNEDMESSAGE_FIELD)
-    private Message pinnedMessage; ///< Optional. Pinned message, for supergroups. Returned only in getChat.
 
     public Chat() {
         super();
@@ -116,10 +113,6 @@ public class Chat implements BotApiObject {
         return inviteLink;
     }
 
-    public Message getPinnedMessage() {
-        return pinnedMessage;
-    }
-
     @Override
     public String toString() {
         return "Chat{" +
@@ -133,7 +126,6 @@ public class Chat implements BotApiObject {
                 ", photo=" + photo +
                 ", description='" + description + '\'' +
                 ", inviteLink='" + inviteLink + '\'' +
-                ", pinnedMessage=" + pinnedMessage +
                 '}';
     }
 }
