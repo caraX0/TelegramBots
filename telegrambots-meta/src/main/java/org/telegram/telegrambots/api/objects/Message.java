@@ -24,6 +24,7 @@ public class Message implements BotApiObject {
     private static final String FORWARDDATE_FIELD = "forward_date";
     private static final String TEXT_FIELD = "text";
     private static final String ENTITIES_FIELD = "entities";
+    private static final String CAPTIONENTITIES_FIELD = "caption_entities";
     private static final String AUDIO_FIELD = "audio";
     private static final String DOCUMENT_FIELD = "document";
     private static final String PHOTO_FIELD = "photo";
@@ -52,6 +53,8 @@ public class Message implements BotApiObject {
     private static final String INVOICE_FIELD = "invoice";
     private static final String SUCCESSFUL_PAYMENT_FIELD = "successful_payment";
     private static final String VIDEO_NOTE_FIELD = "video_note";
+    private static final String AUTHORSIGNATURE_FIELD = "author_signature";
+    private static final String FORWARDSIGNATURE_FIELD = "forward_signature";
 
     @JsonProperty(MESSAGEID_FIELD)
     private Integer messageId; ///< Integer	Unique message identifier
@@ -75,6 +78,12 @@ public class Message implements BotApiObject {
      */
     @JsonProperty(ENTITIES_FIELD)
     private List<MessageEntity> entities;
+    /**
+     * Optional. For messages with a caption, special entities like usernames,
+     * URLs, bot commands, etc. that appear in the caption
+     */
+    @JsonProperty(CAPTIONENTITIES_FIELD)
+    private List<MessageEntity> captionEntities;
     @JsonProperty(AUDIO_FIELD)
     private Audio audio; ///< Optional. Message is an audio file, information about the file
     @JsonProperty(DOCUMENT_FIELD)
@@ -159,6 +168,11 @@ public class Message implements BotApiObject {
     private SuccessfulPayment successfulPayment; ///< Optional. Message is a service message about a successful payment, information about the payment.
     @JsonProperty(VIDEO_NOTE_FIELD)
     private VideoNote videoNote; ///< Optional. Message is a video note, information about the video message
+    @JsonProperty(AUTHORSIGNATURE_FIELD)
+    private String authorSignature; ///< Optional. Post author signature for posts in channel chats
+    @JsonProperty(FORWARDSIGNATURE_FIELD)
+    private String forwardSignature; ///< Optional. Post author signature for messages forwarded from channel chats
+
 
     public Message() {
         super();
@@ -197,6 +211,13 @@ public class Message implements BotApiObject {
             entities.forEach(x -> x.computeText(text));
         }
         return entities;
+    }
+
+    public List<MessageEntity> getCaptionEntities() {
+        if (captionEntities != null) {
+            captionEntities.forEach(x -> x.computeText(caption));
+        }
+        return captionEntities;
     }
 
     public Audio getAudio() {
@@ -383,6 +404,14 @@ public class Message implements BotApiObject {
         return videoNote;
     }
 
+    public String getAuthorSignature() {
+        return authorSignature;
+    }
+
+    public String getForwardSignature() {
+        return forwardSignature;
+    }
+
     @Override
     public String toString() {
         return "Message{" +
@@ -395,6 +424,7 @@ public class Message implements BotApiObject {
                 ", forwardDate=" + forwardDate +
                 ", text='" + text + '\'' +
                 ", entities=" + entities +
+                ", captionEntities=" + captionEntities +
                 ", audio=" + audio +
                 ", document=" + document +
                 ", photo=" + photo +
@@ -423,6 +453,8 @@ public class Message implements BotApiObject {
                 ", invoice=" + invoice +
                 ", successfulPayment=" + successfulPayment +
                 ", videoNote=" + videoNote +
+                ", authorSignature='" + authorSignature + '\'' +
+                ", forwardSignature='" + forwardSignature + '\'' +
                 '}';
     }
 }
