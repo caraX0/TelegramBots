@@ -88,7 +88,7 @@ Now that we have the library, we can start coding. There are few steps to follow
                         .setChatId(update.getMessage().getChatId())
                         .setText(update.getMessage().getText());
                 try {
-                    execute(message); // Call method to send the message
+                    sendMessage(message); // Call method to send the message
                 } catch (TelegramApiException e) {
                     e.printStackTrace();
                 }
