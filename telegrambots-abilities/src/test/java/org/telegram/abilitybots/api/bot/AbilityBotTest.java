@@ -2,15 +2,14 @@ package org.telegram.abilitybots.api.bot;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
-import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.telegram.abilitybots.api.db.DBContext;
 import org.telegram.abilitybots.api.objects.*;
 import org.telegram.abilitybots.api.sender.MessageSender;
-import org.telegram.abilitybots.api.sender.SilentSender;
 import org.telegram.abilitybots.api.util.Pair;
 import org.telegram.abilitybots.api.util.Trio;
 import org.telegram.telegrambots.api.objects.*;
@@ -26,11 +25,9 @@ import java.util.Set;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.String.format;
 import static java.util.Collections.emptySet;
-import static org.apache.commons.io.FileUtils.deleteQuietly;
 import static org.apache.commons.lang3.ArrayUtils.addAll;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static org.telegram.abilitybots.api.bot.AbilityBot.RECOVERY_MESSAGE;
@@ -57,18 +54,13 @@ public class AbilityBotTest {
   private DefaultBot bot;
   private DBContext db;
   private MessageSender sender;
-  private SilentSender silent;
 
   @Before
   public void setUp() {
     db = offlineInstance("db");
     bot = new DefaultBot(EMPTY, EMPTY, db);
-
     sender = mock(MessageSender.class);
-    silent = mock(SilentSender.class);
-
-    bot.sender = sender;
-    bot.silent = silent;
+    bot.setSender(sender);
   }
 
   @Test
@@ -77,7 +69,7 @@ public class AbilityBotTest {
 
     bot.onUpdateReceived(update);
 
-    verify(silent, times(1)).send(format("Sorry, %s-only feature.", "admin"), MUSER.id());
+    verify(sender, times(1)).send(format("Sorry, %s-only feature.", "admin"), MUSER.id());
   }
 
   @Test
@@ -86,7 +78,7 @@ public class AbilityBotTest {
 
     bot.onUpdateReceived(update);
 
-    verify(silent, times(1)).send(format("Sorry, %s-only feature.", "group"), MUSER.id());
+    verify(sender, times(1)).send(format("Sorry, %s-only feature.", "group"), MUSER.id());
 
   }
 
@@ -96,7 +88,7 @@ public class AbilityBotTest {
 
     bot.onUpdateReceived(update);
 
-    verify(silent, times(1)).send(format("Sorry, this feature requires %d additional inputs.", 4), MUSER.id());
+    verify(sender, times(1)).send(format("Sorry, this feature requires %d additional inputs.", 4), MUSER.id());
   }
 
   @Test
@@ -105,7 +97,7 @@ public class AbilityBotTest {
 
     // False means the update was not pushed down the stream since it has been consumed by the reply
     assertFalse(bot.filterReply(update));
-    verify(silent, times(1)).send("reply", MUSER.id());
+    verify(sender, times(1)).send("reply", MUSER.id());
   }
 
   @Test
@@ -113,7 +105,6 @@ public class AbilityBotTest {
     MessageContext context = defaultContext();
 
     bot.backupDB().action().accept(context);
-    deleteQuietly(new java.io.File("backup.json"));
 
     verify(sender, times(1)).sendDocument(any());
   }
@@ -124,10 +115,10 @@ public class AbilityBotTest {
     Object backup = getDbBackup();
     java.io.File backupFile = createBackupFile(backup);
 
-    when(sender.downloadFile(any(File.class))).thenReturn(backupFile);
+    when(sender.downloadFile(Matchers.any(File.class))).thenReturn(backupFile);
     bot.recoverDB().replies().get(0).actOn(update);
 
-    verify(silent, times(1)).send(RECOVER_SUCCESS, GROUP_ID);
+    verify(sender, times(1)).send(RECOVER_SUCCESS, GROUP_ID);
     assertEquals("Bot recovered but the DB is still not in sync", db.getSet(TEST), newHashSet(TEST));
     assertTrue("Could not delete backup file", backupFile.delete());
   }
@@ -410,9 +401,13 @@ public class AbilityBotTest {
   }
 
   @Test
-  public void defaultGlobalFlagIsTrue() {
+  public void canCheckGlobalFlags() {
     Update update = mock(Update.class);
-    assertEquals("Unexpected result when checking for the default global flags", true, bot.checkGlobalFlags(update));
+    Message message = mock(Message.class);
+
+    when(update.hasMessage()).thenReturn(true);
+    when(update.getMessage()).thenReturn(message);
+    assertEquals("Unexpected result when checking for locality", true, bot.checkGlobalFlags(update));
   }
 
   @Test(expected = ArithmeticException.class)
@@ -497,7 +492,7 @@ public class AbilityBotTest {
 
     bot.reportCommands().action().accept(context);
 
-    verify(silent, times(1)).send("default - dis iz default command", GROUP_ID);
+    verify(sender, times(1)).send("default - dis iz default command", GROUP_ID);
   }
 
   @After

@@ -3,9 +3,8 @@ package org.telegram.abilitybots.api.bot;
 import org.apache.commons.io.IOUtils;
 import org.telegram.abilitybots.api.db.DBContext;
 import org.telegram.abilitybots.api.objects.*;
-import org.telegram.abilitybots.api.sender.DefaultSender;
+import org.telegram.abilitybots.api.sender.DefaultMessageSender;
 import org.telegram.abilitybots.api.sender.MessageSender;
-import org.telegram.abilitybots.api.sender.SilentSender;
 import org.telegram.abilitybots.api.util.AbilityUtils;
 import org.telegram.abilitybots.api.util.Pair;
 import org.telegram.abilitybots.api.util.Trio;
@@ -111,7 +110,6 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
   // DB and sender
   protected final DBContext db;
   protected MessageSender sender;
-  protected SilentSender silent;
 
   // Bot token and username
   private final String botToken;
@@ -123,16 +121,13 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
   // Reply registry
   private List<Reply> replies;
 
-  public abstract int creatorId();
-
   protected AbilityBot(String botToken, String botUsername, DBContext db, DefaultBotOptions botOptions) {
     super(botOptions);
 
     this.botToken = botToken;
     this.botUsername = botUsername;
     this.db = db;
-    this.sender = new DefaultSender(this);
-    silent = new SilentSender(sender);
+    this.sender = new DefaultMessageSender(this);
 
     registerAbilities();
   }
@@ -148,6 +143,8 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
   protected AbilityBot(String botToken, String botUsername) {
     this(botToken, botUsername, onlineInstance(botUsername));
   }
+
+  public abstract int creatorId();
 
   /**
    * @return the map of ID -> EndUser
@@ -220,15 +217,15 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
   }
 
   /**
-   * Test the update against the provided global flags. The default implementation is a passthrough to all updates.
+   * Test the update against the provided global flags. The default implementation requires a {@link Flag#MESSAGE}.
    * <p>
-   * This method should be <b>overridden</b> if the user wants to restrict bot usage to only certain updates.
+   * This method should be <b>overridden</b> if the user wants updates that don't require a MESSAGE to pass through.
    *
    * @param update a Telegram {@link Update}
    * @return <tt>true</tt> if the update satisfies the global flags
    */
   protected boolean checkGlobalFlags(Update update) {
-    return true;
+    return MESSAGE.test(update);
   }
 
   /**
@@ -271,7 +268,7 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
     try {
       return getUser(username).id();
     } catch (IllegalStateException ex) {
-      silent.send(format("Sorry, I could not find the user [%s].", username), chatId);
+      sender.send(format("Sorry, I could not find the user [%s].", username), chatId);
       throw propagate(ex);
     }
   }
@@ -310,7 +307,7 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
               .reduce((a, b) -> format("%s%n%s", a, b))
               .orElse("No public commands found.");
 
-          silent.send(commands, ctx.chatId());
+          sender.send(commands, ctx.chatId());
         })
         .build();
   }
@@ -363,7 +360,7 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
         .locality(USER)
         .privacy(CREATOR)
         .input(0)
-        .action(ctx -> silent.forceReply(RECOVERY_MESSAGE, ctx.chatId()))
+        .action(ctx -> sender.forceReply(RECOVERY_MESSAGE, ctx.chatId()))
         .reply(update -> {
           Long chatId = update.getMessage().getChatId();
           String fileId = update.getMessage().getDocument().getFileId();
@@ -371,13 +368,13 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
           try (FileReader reader = new FileReader(downloadFileWithId(fileId))) {
             String backupData = IOUtils.toString(reader);
             if (db.recover(backupData)) {
-              silent.send(RECOVER_SUCCESS, chatId);
+              sender.send(RECOVER_SUCCESS, chatId);
             } else {
-              silent.send("Oops, something went wrong during recovery.", chatId);
+              sender.send("Oops, something went wrong during recovery.", chatId);
             }
           } catch (Exception e) {
             BotLogger.error("Could not recover DB from backup", TAG, e);
-            silent.send("I have failed to recover.", chatId);
+            sender.send("I have failed to recover.", chatId);
           }
         }, MESSAGE, DOCUMENT, REPLY, isReplyTo(RECOVERY_MESSAGE))
         .build();
@@ -413,10 +410,10 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
 
           Set<Integer> blacklist = blacklist();
           if (blacklist.contains(userId))
-            silent.sendMd(format("%s is already *banned*.", bannedUser), ctx.chatId());
+            sender.sendMd(format("%s is already *banned*.", bannedUser), ctx.chatId());
           else {
             blacklist.add(userId);
-            silent.sendMd(format("%s is now *banned*.", bannedUser), ctx.chatId());
+            sender.sendMd(format("%s is now *banned*.", bannedUser), ctx.chatId());
           }
         })
         .post(commitTo(db))
@@ -441,9 +438,9 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
           Set<Integer> blacklist = blacklist();
 
           if (!blacklist.remove(userId))
-            silent.sendMd(format("@%s is *not* on the *blacklist*.", username), ctx.chatId());
+            sender.sendMd(format("@%s is *not* on the *blacklist*.", username), ctx.chatId());
           else {
-            silent.sendMd(format("@%s, your ban has been *lifted*.", username), ctx.chatId());
+            sender.sendMd(format("@%s, your ban has been *lifted*.", username), ctx.chatId());
           }
         })
         .post(commitTo(db))
@@ -465,10 +462,10 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
 
           Set<Integer> admins = admins();
           if (admins.contains(userId))
-            silent.sendMd(format("@%s is already an *admin*.", username), ctx.chatId());
+            sender.sendMd(format("@%s is already an *admin*.", username), ctx.chatId());
           else {
             admins.add(userId);
-            silent.sendMd(format("@%s has been *promoted*.", username), ctx.chatId());
+            sender.sendMd(format("@%s has been *promoted*.", username), ctx.chatId());
           }
         }).post(commitTo(db))
         .build();
@@ -489,9 +486,9 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
 
           Set<Integer> admins = admins();
           if (admins.remove(userId)) {
-            silent.sendMd(format("@%s has been *demoted*.", username), ctx.chatId());
+            sender.sendMd(format("@%s has been *demoted*.", username), ctx.chatId());
           } else {
-            silent.sendMd(format("@%s is *not* an *admin*.", username), ctx.chatId());
+            sender.sendMd(format("@%s is *not* an *admin*.", username), ctx.chatId());
           }
         })
         .post(commitTo(db))
@@ -516,10 +513,10 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
             long chatId = ctx.chatId();
 
             if (admins.contains(id))
-              silent.send("You're already my master.", chatId);
+              sender.send("You're already my master.", chatId);
             else {
               admins.add(id);
-              silent.send("You're now my master.", chatId);
+              sender.send("You're now my master.", chatId);
             }
           } else {
             // This is not a joke
@@ -617,7 +614,7 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
     boolean isOk = abilityTokens == 0 || (tokens.length > 0 && tokens.length == abilityTokens);
 
     if (!isOk)
-      silent.send(String.format("Sorry, this feature requires %d additional %s.", abilityTokens, abilityTokens == 1 ? "input" : "inputs"), getChatId(trio.a()));
+      sender.send(String.format("Sorry, this feature requires %d additional %s.", abilityTokens, abilityTokens == 1 ? "input" : "inputs"), getChatId(trio.a()));
     return isOk;
   }
 
@@ -629,7 +626,7 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
     boolean isOk = abilityLocality == ALL || locality == abilityLocality;
 
     if (!isOk)
-      silent.send(String.format("Sorry, %s-only feature.", abilityLocality.toString().toLowerCase()), getChatId(trio.a()));
+      sender.send(String.format("Sorry, %s-only feature.", abilityLocality.toString().toLowerCase()), getChatId(trio.a()));
     return isOk;
   }
 
@@ -644,7 +641,7 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
     boolean isOk = privacy.compareTo(trio.b().privacy()) >= 0;
 
     if (!isOk)
-      silent.send(String.format("Sorry, %s-only feature.", trio.b().privacy().toString().toLowerCase()), getChatId(trio.a()));
+      sender.send(String.format("Sorry, %s-only feature.", trio.b().privacy().toString().toLowerCase()), getChatId(trio.a()));
     return isOk;
   }
 
@@ -733,7 +730,7 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
   boolean checkMessageFlags(Trio<Update, Ability, String[]> trio) {
     Ability ability = trio.b();
     Update update = trio.a();
-
+    
     // The following variable is required to avoid bug #JDK-8044546
     BiFunction<Boolean, Predicate<Update>, Boolean> flagAnd = (flag, nextFlag) -> flag && nextFlag.test(update);
     return ability.flags().stream()
@@ -741,6 +738,6 @@ public abstract class AbilityBot extends TelegramLongPollingBot {
   }
 
   private File downloadFileWithId(String fileId) throws TelegramApiException {
-    return sender.downloadFile(sender.execute(new GetFile().setFileId(fileId)));
+    return sender.downloadFile(sender.getFile(new GetFile().setFileId(fileId)));
   }
 }
