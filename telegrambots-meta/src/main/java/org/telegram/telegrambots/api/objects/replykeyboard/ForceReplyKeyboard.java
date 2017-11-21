@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.telegram.telegrambots.exceptions.TelegramApiValidationException;
 
-import java.util.Objects;
-
 /**
  * @author Ruben Bermudez
  * @version 1.0
@@ -56,25 +54,6 @@ public class ForceReplyKeyboard implements ReplyKeyboard {
         if (forceReply == null) {
             throw new TelegramApiValidationException("ForceReply parameter can't not be null", this);
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == this) return true;
-        if (!(o instanceof ForceReplyKeyboard)) {
-            return false;
-        }
-        ForceReplyKeyboard forceReplyKeyboard = (ForceReplyKeyboard) o;
-        return Objects.equals(forceReply, forceReplyKeyboard.forceReply)
-                && Objects.equals(selective, forceReplyKeyboard.selective)
-                ;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-                forceReply,
-                selective);
     }
 
     @Override
