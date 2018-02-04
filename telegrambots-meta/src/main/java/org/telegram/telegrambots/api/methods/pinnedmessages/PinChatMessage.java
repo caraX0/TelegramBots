@@ -15,9 +15,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Ruben Bermudez
  * @version 3.1
- * Use this method to pin a message in a supergroup or channel.
- * The bot must be an administrator in the chat for this to work and must have the ‘can_pin_messages’
- * admin right in the supergroup or ‘can_edit_messages’ admin right in the channel.
+ * Use this method to pin a message in a supergroup.
+ * The bot must be an administrator in the chat for this to work and must have the appropriate admin rights.
  * Returns True on success.
  */
 public class PinChatMessage extends BotApiMethod<Boolean> {
@@ -28,15 +27,11 @@ public class PinChatMessage extends BotApiMethod<Boolean> {
     private static final String DISABLENOTIFICATION_FIELD = "disable_notification";
 
     @JsonProperty(CHATID_FIELD)
-    private String chatId; ///< Required. Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+    private String chatId; ///< Required. Unique identifier for the target chat or username of the target supergroup (in the format @supergroupusername)
     @JsonProperty(MESSAGEID_FIELD)
     private Integer messageId; ///< Required. Identifier of a message to pin
     @JsonProperty(DISABLENOTIFICATION_FIELD)
-    /**
-     * Pass True, if it is not necessary to send a notification to all chat members about the new pinned message.
-     * Notifications are always disabled in channels.
-     */
-    private Boolean disableNotification;
+    private Boolean disableNotification; ///< Pass true, if it is not necessary to send a notification to all group members about the new pinned message
 
     public PinChatMessage() {
         super();

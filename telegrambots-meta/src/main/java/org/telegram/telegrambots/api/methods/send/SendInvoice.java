@@ -42,8 +42,7 @@ public class SendInvoice extends BotApiMethod<Message> {
     private static final String IS_FLEXIBLE_FIELD = "is_flexible";
     private static final String DISABLE_NOTIFICATION_FIELD = "disable_notification";
     private static final String REPLY_TO_MESSAGE_ID_FIELD = "reply_to_message_id";
-    private static final String REPLY_MARKUP_FIELD = "reply_markup";
-    private static final String PRIVIDER_DATA_FIELD = "provider_data";
+    private static final String REPLY_MARKUP_FIELD = "reply_markup\t";
 
     @JsonProperty(CHATID_FIELD)
     private Integer chatId; ///< Unique identifier for the target private chat
@@ -94,13 +93,6 @@ public class SendInvoice extends BotApiMethod<Message> {
      * @note If empty, one 'Buy title' button will be shown. If not empty, the first button must be a Pay button.
      */
     private InlineKeyboardMarkup replyMarkup;
-    @JsonProperty(PRIVIDER_DATA_FIELD)
-    /**
-     * Optional JSON-encoded data about the invoice, which will be shared with the payment provider.
-     *
-     * @note A detailed description of required fields should be provided by the payment provider.
-     */
-    private String providerData;
 
 
     /**
@@ -313,15 +305,6 @@ public class SendInvoice extends BotApiMethod<Message> {
         return this;
     }
 
-    public String getProviderData() {
-        return providerData;
-    }
-
-    public SendInvoice setProviderData(String providerData) {
-        this.providerData = providerData;
-        return this;
-    }
-
     @Override
     public String getMethod() {
         return PATH;
@@ -380,7 +363,7 @@ public class SendInvoice extends BotApiMethod<Message> {
     @Override
     public String toString() {
         return "SendInvoice{" +
-                "chatId=" + chatId +
+                "chatId='" + chatId + '\'' +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", payload='" + payload + '\'' +
@@ -400,7 +383,6 @@ public class SendInvoice extends BotApiMethod<Message> {
                 ", disableNotification=" + disableNotification +
                 ", replyToMessageId=" + replyToMessageId +
                 ", replyMarkup=" + replyMarkup +
-                ", providerData='" + providerData + '\'' +
                 '}';
     }
 }

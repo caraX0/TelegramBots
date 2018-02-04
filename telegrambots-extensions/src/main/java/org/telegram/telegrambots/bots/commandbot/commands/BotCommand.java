@@ -1,7 +1,6 @@
 package org.telegram.telegrambots.bots.commandbot.commands;
 
 import org.telegram.telegrambots.api.objects.Chat;
-import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.User;
 import org.telegram.telegrambots.bots.AbsSender;
 
@@ -65,17 +64,6 @@ public abstract class BotCommand {
     public String toString() {
         return "<b>" + COMMAND_INIT_CHARACTER + getCommandIdentifier() +
                 "</b>\n" + getDescription();
-    }
-
-    /**
-     * Process the message and execute the command
-     *
-     * @param absSender absSender to send messages over
-     * @param message   the message to process
-     * @param arguments passed arguments
-     */
-    void processMessage(AbsSender absSender, Message message, String[] arguments) {
-        execute(absSender, message.getFrom(), message.getChat(), arguments);
     }
 
     /**
