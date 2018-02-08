@@ -31,7 +31,7 @@ public class MapDBContextTest {
   }
 
   @Test
-  public void canRecoverDB() {
+  public void canRecoverDB() throws IOException {
     Map<Integer, EndUser> users = db.getMap(USERS);
     Map<String, Integer> userIds = db.getMap(USER_ID);
     users.put(CREATOR.id(), CREATOR);
