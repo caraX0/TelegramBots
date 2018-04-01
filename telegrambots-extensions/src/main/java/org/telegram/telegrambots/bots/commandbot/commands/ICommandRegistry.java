@@ -29,7 +29,7 @@ public interface ICommandRegistry {
      * @param botCommand the command to register
      * @return whether the command could be registered, was not already registered
      */
-    boolean register(IBotCommand botCommand);
+    boolean register(BotCommand botCommand);
 
     /**
      * register multiple commands
@@ -37,7 +37,7 @@ public interface ICommandRegistry {
      * @param botCommands commands to register
      * @return map with results of the command register per command
      */
-    Map<IBotCommand, Boolean> registerAll(IBotCommand... botCommands);
+    Map<BotCommand, Boolean> registerAll(BotCommand... botCommands);
 
     /**
      * deregister a command
@@ -45,7 +45,7 @@ public interface ICommandRegistry {
      * @param botCommand the command to deregister
      * @return whether the command could be deregistered, was registered
      */
-    boolean deregister(IBotCommand botCommand);
+    boolean deregister(BotCommand botCommand);
 
     /**
      * deregister multiple commands
@@ -53,19 +53,19 @@ public interface ICommandRegistry {
      * @param botCommands commands to deregister
      * @return map with results of the command deregistered per command
      */
-    Map<IBotCommand, Boolean> deregisterAll(IBotCommand... botCommands);
+    Map<BotCommand, Boolean> deregisterAll(BotCommand... botCommands);
 
     /**
      * get a collection of all registered commands
      *
      * @return a collection of registered commands
      */
-    Collection<IBotCommand> getRegisteredCommands();
+    Collection<BotCommand> getRegisteredCommands();
 
     /**
      * get registered command
      *
      * @return registered command if exists or null if not
      */
-    IBotCommand getRegisteredCommand(String commandIdentifier);
+    BotCommand getRegisteredCommand(String commandIdentifier);
 }
