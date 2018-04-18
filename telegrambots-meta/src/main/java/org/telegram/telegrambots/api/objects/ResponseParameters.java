@@ -38,7 +38,7 @@ public class ResponseParameters implements BotApiObject {
      * so a signed 64 bit integer or double-precision float type are safe for storing this identifier.
      */
     @JsonProperty(MIGRATETOCHATID_FIELD)
-    private Long migrateToChatId;
+    private Integer migrateToChatId;
     /**
      * Optional. In case of exceeding flood control a number of seconds to
      * wait before the request can be repeated
@@ -50,7 +50,7 @@ public class ResponseParameters implements BotApiObject {
         super();
     }
 
-    public Long getMigrateToChatId() {
+    public Integer getMigrateToChatId() {
         return migrateToChatId;
     }
 
