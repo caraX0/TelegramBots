@@ -13,9 +13,6 @@ import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import static java.util.ResourceBundle.Control.FORMAT_PROPERTIES;
-import static java.util.ResourceBundle.Control.getNoFallbackControl;
-import static java.util.ResourceBundle.getBundle;
 import static org.telegram.abilitybots.api.objects.Flag.*;
 
 /**
@@ -95,6 +92,28 @@ public final class AbilityUtils {
   }
 
   /**
+   * A "best-effort" boolean stating whether the update is a super-group message or not.
+   *
+   * @param update a Telegram {@link Update}
+   * @return whether the update is linked to a group
+   */
+  public static boolean isSuperGroupUpdate(Update update) {
+    if (MESSAGE.test(update)) {
+      return update.getMessage().isSuperGroupMessage();
+    } else if (CALLBACK_QUERY.test(update)) {
+      return update.getCallbackQuery().getMessage().isSuperGroupMessage();
+    } else if (CHANNEL_POST.test(update)) {
+      return update.getChannelPost().isSuperGroupMessage();
+    } else if (EDITED_CHANNEL_POST.test(update)) {
+      return update.getEditedChannelPost().isSuperGroupMessage();
+    } else if (EDITED_MESSAGE.test(update)) {
+      return update.getEditedMessage().isSuperGroupMessage();
+    } else {
+      return false;
+    }
+  }
+
+  /**
    * Fetches the direct chat ID of the specified update.
    *
    * @param update a Telegram {@link Update}
@@ -161,16 +180,13 @@ public final class AbilityUtils {
 
   public static String getLocalizedMessage(String messageCode, Locale locale, Object...arguments) {
     ResourceBundle bundle;
-    if (locale == null) {
-      bundle = getBundle("messages", Locale.ROOT);
-    } else {
+    if(locale == null){
+      bundle = ResourceBundle.getBundle("default_messages");
+    }else {
       try {
-        bundle = getBundle(
-                "messages",
-                locale,
-                getNoFallbackControl(FORMAT_PROPERTIES));
+        bundle = ResourceBundle.getBundle("messages", locale);
       } catch (MissingResourceException e) {
-        bundle = getBundle("messages", Locale.ROOT);
+        bundle = ResourceBundle.getBundle("default_messages");
       }
     }
     String message = bundle.getString(messageCode);
