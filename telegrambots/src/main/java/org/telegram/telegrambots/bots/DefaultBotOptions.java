@@ -1,5 +1,7 @@
 package org.telegram.telegrambots.bots;
 
+import org.apache.http.HttpHost;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.telegram.telegrambots.ApiConstants;
 import org.telegram.telegrambots.generics.BotOptions;
@@ -82,4 +84,5 @@ public class DefaultBotOptions implements BotOptions {
     public void setExponentialBackOff(ExponentialBackOff exponentialBackOff) {
         this.exponentialBackOff = exponentialBackOff;
     }
+
 }
