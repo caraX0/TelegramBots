@@ -1,13 +1,21 @@
 package org.telegram.abilitybots.api.util;
 
+import com.google.common.base.Strings;
 import org.telegram.abilitybots.api.db.DBContext;
 import org.telegram.abilitybots.api.objects.MessageContext;
 import org.telegram.telegrambots.api.objects.Update;
 import org.telegram.telegrambots.api.objects.User;
 
+import java.text.MessageFormat;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import static java.util.ResourceBundle.Control.FORMAT_PROPERTIES;
+import static java.util.ResourceBundle.Control.getNoFallbackControl;
+import static java.util.ResourceBundle.getBundle;
 import static org.telegram.abilitybots.api.objects.Flag.*;
 
 /**
@@ -87,28 +95,6 @@ public final class AbilityUtils {
   }
 
   /**
-   * A "best-effort" boolean stating whether the update is a super-group message or not.
-   *
-   * @param update a Telegram {@link Update}
-   * @return whether the update is linked to a group
-   */
-  public static boolean isSuperGroupUpdate(Update update) {
-    if (MESSAGE.test(update)) {
-      return update.getMessage().isSuperGroupMessage();
-    } else if (CALLBACK_QUERY.test(update)) {
-      return update.getCallbackQuery().getMessage().isSuperGroupMessage();
-    } else if (CHANNEL_POST.test(update)) {
-      return update.getChannelPost().isSuperGroupMessage();
-    } else if (EDITED_CHANNEL_POST.test(update)) {
-      return update.getEditedChannelPost().isSuperGroupMessage();
-    } else if (EDITED_MESSAGE.test(update)) {
-      return update.getEditedMessage().isSuperGroupMessage();
-    } else {
-      return false;
-    }
-  }
-
-  /**
    * Fetches the direct chat ID of the specified update.
    *
    * @param update a Telegram {@link Update}
@@ -172,4 +158,28 @@ public final class AbilityUtils {
   public static Predicate<Update> isReplyTo(String msg) {
     return update -> update.getMessage().getReplyToMessage().getText().equals(msg);
   }
+
+  public static String getLocalizedMessage(String messageCode, Locale locale, Object...arguments) {
+    ResourceBundle bundle;
+    if (locale == null) {
+      bundle = getBundle("messages", Locale.ROOT);
+    } else {
+      try {
+        bundle = getBundle(
+                "messages",
+                locale,
+                getNoFallbackControl(FORMAT_PROPERTIES));
+      } catch (MissingResourceException e) {
+        bundle = getBundle("messages", Locale.ROOT);
+      }
+    }
+    String message = bundle.getString(messageCode);
+    return MessageFormat.format(message, arguments);
+  }
+
+  public static String getLocalizedMessage(String messageCode, String languageCode, Object...arguments){
+    Locale locale = Strings.isNullOrEmpty(languageCode) ? null : Locale.forLanguageTag(languageCode);
+    return getLocalizedMessage(messageCode, locale, arguments);
+  }
+
 }

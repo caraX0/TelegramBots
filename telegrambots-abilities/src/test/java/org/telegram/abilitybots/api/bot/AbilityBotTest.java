@@ -36,8 +36,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
-import static org.telegram.abilitybots.api.bot.AbilityBot.RECOVERY_MESSAGE;
-import static org.telegram.abilitybots.api.bot.AbilityBot.RECOVER_SUCCESS;
 import static org.telegram.abilitybots.api.bot.DefaultBot.getDefaultBuilder;
 import static org.telegram.abilitybots.api.db.MapDBContext.offlineInstance;
 import static org.telegram.abilitybots.api.objects.EndUser.endUser;
@@ -49,12 +47,16 @@ import static org.telegram.abilitybots.api.objects.MessageContext.newContext;
 import static org.telegram.abilitybots.api.objects.Privacy.*;
 
 public class AbilityBotTest {
+  // Messages
+  private static final String RECOVERY_MESSAGE = "I am ready to receive the backup file. Please reply to this message with the backup file attached.";
+  private static final String RECOVER_SUCCESS = "I have successfully recovered.";
+
   private static final String[] EMPTY_ARRAY = {};
   private static final long GROUP_ID = 10L;
   private static final String TEST = "test";
   private static final String[] TEXT = {TEST};
-  public static final EndUser MUSER = endUser(1, "first", "last", "username");
-  public static final EndUser CREATOR = endUser(1337, "creatorFirst", "creatorLast", "creatorUsername");
+  public static final EndUser MUSER = endUser(1, "first", "last", "username", null);
+  public static final EndUser CREATOR = endUser(1337, "creatorFirst", "creatorLast", "creatorUsername", null);
 
   private DefaultBot bot;
   private DBContext db;
@@ -293,7 +295,7 @@ public class AbilityBotTest {
     String newFirstName = MUSER.firstName() + "-test";
     String newLastName = MUSER.lastName() + "-test";
     int sameId = MUSER.id();
-    EndUser changedUser = endUser(sameId, newFirstName, newLastName, newUsername);
+    EndUser changedUser = endUser(sameId, newFirstName, newLastName, newUsername, null);
 
     mockAlternateUser(update, message, user, changedUser);
 
@@ -362,7 +364,7 @@ public class AbilityBotTest {
   }
 
   @Test
-  public void canValidateGroupAdminPrivacy() {
+  public void canValidateGroupAdminPrivacy() throws TelegramApiException {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
     org.telegram.telegrambots.api.objects.User user = mock(User.class);
@@ -383,7 +385,7 @@ public class AbilityBotTest {
   }
 
   @Test
-  public void canRestrictNormalUsersFromGroupAdminAbilities() {
+  public void canRestrictNormalUsersFromGroupAdminAbilities() throws TelegramApiException {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
     org.telegram.telegrambots.api.objects.User user = mock(User.class);
@@ -556,6 +558,7 @@ public class AbilityBotTest {
     when(message.hasText()).thenReturn(true);
     MessageContext context = mock(MessageContext.class);
     when(context.chatId()).thenReturn(GROUP_ID);
+    when(context.user()).thenReturn(MUSER);
 
     bot.reportCommands().action().accept(context);
 
