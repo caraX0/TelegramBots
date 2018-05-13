@@ -17,7 +17,6 @@ import org.telegram.telegrambots.ApiConstants;
 import org.telegram.telegrambots.ApiContext;
 import org.telegram.telegrambots.api.methods.updates.SetWebhook;
 import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
-import org.telegram.telegrambots.facilities.TelegramHttpClientBuilder;
 import org.telegram.telegrambots.generics.WebhookBot;
 
 import java.io.File;
@@ -45,7 +44,7 @@ public abstract class TelegramWebhookBot extends DefaultAbsSender implements Web
 
     @Override
     public void setWebhook(String url, String publicCertificatePath) throws TelegramApiRequestException {
-        try (CloseableHttpClient httpclient = TelegramHttpClientBuilder.build(getOptions())) {
+        try (CloseableHttpClient httpclient = HttpClientBuilder.create().setSSLHostnameVerifier(new NoopHostnameVerifier()).build()) {
             String requestUrl = getBaseUrl() + SetWebhook.PATH;
 
             HttpPost httppost = new HttpPost(requestUrl);
