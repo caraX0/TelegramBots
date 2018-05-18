@@ -36,11 +36,10 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
-import static org.telegram.abilitybots.api.bot.AbilityBot.RECOVERY_MESSAGE;
-import static org.telegram.abilitybots.api.bot.AbilityBot.RECOVER_SUCCESS;
 import static org.telegram.abilitybots.api.bot.DefaultBot.getDefaultBuilder;
 import static org.telegram.abilitybots.api.db.MapDBContext.offlineInstance;
 import static org.telegram.abilitybots.api.objects.EndUser.endUser;
+import static org.telegram.abilitybots.api.objects.EndUser.fromUser;
 import static org.telegram.abilitybots.api.objects.Flag.DOCUMENT;
 import static org.telegram.abilitybots.api.objects.Flag.MESSAGE;
 import static org.telegram.abilitybots.api.objects.Locality.ALL;
@@ -49,12 +48,18 @@ import static org.telegram.abilitybots.api.objects.MessageContext.newContext;
 import static org.telegram.abilitybots.api.objects.Privacy.*;
 
 public class AbilityBotTest {
+  // Messages
+  private static final String RECOVERY_MESSAGE = "I am ready to receive the backup file. Please reply to this message with the backup file attached.";
+  private static final String RECOVER_SUCCESS = "I have successfully recovered.";
+
   private static final String[] EMPTY_ARRAY = {};
   private static final long GROUP_ID = 10L;
   private static final String TEST = "test";
   private static final String[] TEXT = {TEST};
   public static final EndUser MUSER = endUser(1, "first", "last", "username");
+  public static final User TG_USER = newUser(1, "first", "last", "username", null);
   public static final EndUser CREATOR = endUser(1337, "creatorFirst", "creatorLast", "creatorUsername");
+  public static final User TG_CREATOR = newUser(1337, "creatorFirst", "creatorLast", "creatorUsername", null);
 
   private DefaultBot bot;
   private DBContext db;
@@ -197,8 +202,7 @@ public class AbilityBotTest {
 
   @NotNull
   private MessageContext defaultContext() {
-    MessageContext context = mock(MessageContext.class);
-    when(context.user()).thenReturn(CREATOR);
+    MessageContext context = mockContext(TG_CREATOR, GROUP_ID);
     when(context.firstArg()).thenReturn(MUSER.username());
     return context;
   }
@@ -206,8 +210,7 @@ public class AbilityBotTest {
   @Test
   public void cannotBanCreator() {
     addUsers(MUSER, CREATOR);
-    MessageContext context = mock(MessageContext.class);
-    when(context.user()).thenReturn(MUSER);
+    MessageContext context = mockContext(TG_USER, GROUP_ID);
     when(context.firstArg()).thenReturn(CREATOR.username());
 
     bot.banUser().action().accept(context);
@@ -226,8 +229,7 @@ public class AbilityBotTest {
 
   @Test
   public void creatorCanClaimBot() {
-    MessageContext context = mock(MessageContext.class);
-    when(context.user()).thenReturn(CREATOR);
+    MessageContext context = mockContext(TG_CREATOR, GROUP_ID);
 
     bot.claimCreator().action().accept(context);
 
@@ -239,8 +241,7 @@ public class AbilityBotTest {
   @Test
   public void userGetsBannedIfClaimsBot() {
     addUsers(MUSER);
-    MessageContext context = mock(MessageContext.class);
-    when(context.user()).thenReturn(MUSER);
+    MessageContext context = mockContext(TG_USER, GROUP_ID);
 
     bot.claimCreator().action().accept(context);
 
@@ -548,18 +549,36 @@ public class AbilityBotTest {
 
   @Test
   public void canReportCommands() {
-    Update update = mock(Update.class);
-    Message message = mock(Message.class);
-
-    when(update.hasMessage()).thenReturn(true);
-    when(update.getMessage()).thenReturn(message);
-    when(message.hasText()).thenReturn(true);
-    MessageContext context = mock(MessageContext.class);
-    when(context.chatId()).thenReturn(GROUP_ID);
+    MessageContext context = mockContext(TG_USER, GROUP_ID);
 
     bot.reportCommands().action().accept(context);
 
     verify(silent, times(1)).send("default - dis iz default command", GROUP_ID);
+  }
+
+  @NotNull
+  public static MessageContext mockContext(User user) {
+    return mockContext(user, user.getId());
+  }
+
+  @NotNull
+  public static MessageContext mockContext(User user, long groupId) {
+    Update update = mock(Update.class);
+    Message message = mock(Message.class);
+    EndUser endUser = fromUser(user);
+
+    when(update.hasMessage()).thenReturn(true);
+    when(update.getMessage()).thenReturn(message);
+
+    when(message.getFrom()).thenReturn(user);
+    when(message.hasText()).thenReturn(true);
+
+    MessageContext context = mock(MessageContext.class);
+    when(context.update()).thenReturn(update);
+    when(context.chatId()).thenReturn(groupId);
+    when(context.user()).thenReturn(endUser);
+
+    return context;
   }
 
   @After
@@ -651,5 +670,18 @@ public class AbilityBotTest {
     writer.flush();
     writer.close();
     return backupFile;
+  }
+
+  public static User newUser(Integer id, String firstname, String lastname, String username, String languageCode) {
+    User user = mock(User.class);
+
+    when(user.getBot()).thenReturn(false);
+    when(user.getFirstName()).thenReturn(firstname);
+    when(user.getId()).thenReturn(id);
+    when(user.getLastName()).thenReturn(lastname);
+    when(user.getUserName()).thenReturn(username);
+    when(user.getLanguageCode()).thenReturn(languageCode);
+
+    return user;
   }
 }
