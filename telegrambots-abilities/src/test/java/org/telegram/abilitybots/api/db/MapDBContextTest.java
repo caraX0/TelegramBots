@@ -13,15 +13,15 @@ import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.String.format;
 import static org.junit.Assert.*;
-import static org.telegram.abilitybots.api.bot.AbilityBot.USERS;
-import static org.telegram.abilitybots.api.bot.AbilityBot.USER_ID;
 import static org.telegram.abilitybots.api.bot.AbilityBotTest.CREATOR;
 import static org.telegram.abilitybots.api.bot.AbilityBotTest.USER;
 import static org.telegram.abilitybots.api.db.MapDBContext.offlineInstance;
 
 public class MapDBContextTest {
-
+  private static final String USERS = "USERS";
+  private static final String USER_ID = "USER_ID";
   private static final String TEST = "TEST";
+
   private DBContext db;
 
   @Before
@@ -98,23 +98,6 @@ public class MapDBContextTest {
   @Test(expected = IllegalStateException.class)
   public void cantGetInfoFromNonexistentDBStructureName() {
     db.info(TEST);
-  }
-
-  @Test
-  public void canGetAndSetVariables() {
-    String varName = "somevar";
-    Var<User> var = db.getVar(varName);
-    var.set(CREATOR);
-    db.commit();
-
-    var = db.getVar(varName);
-    assertEquals(var.get(), CREATOR);
-
-    var.set(USER);
-    db.commit();
-
-    Var<User> changedVar = db.getVar(varName);
-    assertEquals(changedVar.get(), USER);
   }
 
   @After
