@@ -1,9 +1,10 @@
 package org.telegram.telegrambots.bots;
 
 import org.telegram.telegrambots.ApiContext;
+import org.telegram.telegrambots.api.methods.updates.DeleteWebhook;
+import org.telegram.telegrambots.exceptions.TelegramApiException;
 import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.generics.LongPollingBot;
-import org.telegram.telegrambots.util.WebhookUtils;
 
 /**
  * @author Ruben Bermudez
@@ -22,11 +23,19 @@ public abstract class TelegramLongPollingBot extends DefaultAbsSender implements
 
     @Override
     public void clearWebhook() throws TelegramApiRequestException {
-      WebhookUtils.clearWebhook(this);
+        try {
+            boolean result = execute(new DeleteWebhook());
+            if (!result) {
+                throw new TelegramApiRequestException("Error removing old webhook");
+            }
+        } catch (TelegramApiException e) {
+            throw new TelegramApiRequestException("Error removing old webhook", e);
+        }
     }
 
     @Override
     public void onClosing() {
         exe.shutdown();
     }
+
 }
