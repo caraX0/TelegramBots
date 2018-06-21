@@ -25,7 +25,7 @@ Usage
 **Gradle**
 
 ```gradle
-    compile "org.telegram:telegrambots-spring-boot-starter:3.6.1"
+    compile "org.telegram:telegrambots-spring-boot-starter:3.6"
 ```
 
 Motivation
@@ -39,6 +39,8 @@ Your main spring boot class should look like this:
 
 ```java
 @SpringBootApplication
+//Add this annotation to enable automatic bots initializing
+@EnableTelegramBots
 public class YourApplicationMainClass {
 
 	public static void main(String[] args) {
