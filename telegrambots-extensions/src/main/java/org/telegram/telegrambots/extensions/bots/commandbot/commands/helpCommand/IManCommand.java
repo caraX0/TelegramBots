@@ -1,4 +1,4 @@
-package org.telegram.telegrambots.bots.commandbot.commands.helpCommand;
+package org.telegram.telegrambots.extensions.bots.commandbot.commands.helpCommand;
 
 /**
  * Represents a Command that, aside the normal command description provides an extended Description similar to the output of the Linux <i>man</i> command

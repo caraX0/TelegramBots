@@ -1,6 +1,6 @@
-package org.telegram.telegrambots.bots.commandbot.commands.helpCommand;
+package org.telegram.telegrambots.extensions.bots.commandbot.commands.helpCommand;
 
-import org.telegram.telegrambots.bots.commandbot.commands.BotCommand;
+import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 
 public abstract class ManCommand extends BotCommand implements IManCommand {
 	
@@ -18,7 +18,7 @@ public abstract class ManCommand extends BotCommand implements IManCommand {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.telegram.telegrambots.bots.commandbot.commands.helpCommand.IManCommand#getExtendedDescription()
+	 * @see org.telegram.telegrambots.extensions.bots.commandbot.commands.helpCommand.IManCommand#getExtendedDescription()
 	 */
 	@Override
 	public String getExtendedDescription() {
@@ -26,7 +26,7 @@ public abstract class ManCommand extends BotCommand implements IManCommand {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.telegram.telegrambots.bots.commandbot.commands.helpCommand.IManCommand#toMan()
+	 * @see org.telegram.telegrambots.extensions.bots.commandbot.commands.helpCommand.IManCommand#toMan()
 	 */
 	@Override
 	public String toMan() {
