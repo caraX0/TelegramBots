@@ -15,9 +15,6 @@ import org.telegram.telegrambots.meta.api.interfaces.Validable;
  * PassportElementErrorSelfie
  * PassportElementErrorFile
  * PassportElementErrorFiles
- * PassportElementErrorUnspecified
- * PassportElementErrorTranslationFile
- * PassportElementErrorTranslationFiles
  */
 public interface PassportElementError extends InputBotApiObject, Validable {
 }
