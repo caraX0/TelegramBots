@@ -4,7 +4,6 @@ import org.telegram.telegrambots.meta.api.interfaces.Validable;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Ruben Bermudez
@@ -19,10 +18,6 @@ public class KeyboardRow extends ArrayList<KeyboardButton> implements Validable 
 
     public void add(int index, String text) {
         super.add(index, new KeyboardButton(text));
-    }
-
-    public void addAll(List<String> buttonNames) {
-        buttonNames.forEach(name -> super.add(new KeyboardButton(name)));
     }
 
     public boolean contains(String text) {
