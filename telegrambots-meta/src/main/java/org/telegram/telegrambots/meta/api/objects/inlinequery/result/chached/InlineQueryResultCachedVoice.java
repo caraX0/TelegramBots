@@ -15,9 +15,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
  * a message with the specified content instead of the voice message.
  * @note This will only work in Telegram versions released after 9 April, 2016. Older clients will
  * ignore them.
- * @deprecated  Replaced by {@link org.telegram.telegrambots.meta.api.objects.inlinequery.result.cached.InlineQueryResultCachedVoice}
  */
-@Deprecated
 public class InlineQueryResultCachedVoice implements InlineQueryResult {
     private static final String TYPE_FIELD = "type";
     private static final String ID_FIELD = "id";

@@ -16,9 +16,7 @@ import java.util.Objects;
  * @version 1.0
  * @brief Use this method to get the number of members in a chat. Returns Int on success.
  * @date 20 of May of 2016
- * @deprecated  Replaced by {@link GetChatMembersCount}
  */
-@Deprecated
 public class GetChatMemberCount extends BotApiMethod<Integer> {
     public static final String PATH = "getChatMembersCount";
 

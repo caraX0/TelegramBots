@@ -196,14 +196,14 @@ public class TestRestApi extends JerseyTest {
     }
 
     @Test
-    public void TestGetChatMembersCount() {
-        webhookBot.setReturnValue(BotApiMethodHelperFactory.getChatMembersCount());
+    public void TestGetChatMemberCount() {
+        webhookBot.setReturnValue(BotApiMethodHelperFactory.getChatMemberCount());
 
         Entity<Update> entity = Entity.json(getUpdate());
         BotApiMethod result =
                 target("callback/testbot")
                         .request(MediaType.APPLICATION_JSON)
-                        .post(entity, GetChatMembersCount.class);
+                        .post(entity, GetChatMemberCount.class);
 
         assertEquals("{\"chat_id\":\"12345\",\"method\":\"getChatMembersCount\"}", map(result));
     }
