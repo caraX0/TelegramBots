@@ -9,7 +9,6 @@ import org.telegram.telegrambots.meta.api.interfaces.BotApiObject;
  * @version 1.0
  * This object represents a Telegram chat with an user or a group
  */
-@SuppressWarnings("WeakerAccess")
 public class Chat implements BotApiObject {
 
     private static final String ID_FIELD = "id";
@@ -65,7 +64,7 @@ public class Chat implements BotApiObject {
     @JsonProperty(STICKERSETNAME_FIELD)
     private String stickerSetName; ///< Optional. For supergroups, name of Group sticker set. Returned only in getChat.
     @JsonProperty(CANSETSTICKERSET_FIELD)
-    private Boolean canSetStickerSet; ///< Optional. True, if the bot can change group the sticker set. Returned only in getChat.
+    private Message canSetStickerSet; ///< Optional. True, if the bot can change group the sticker set. Returned only in getChat.
 
     public Chat() {
         super();
@@ -131,7 +130,7 @@ public class Chat implements BotApiObject {
         return stickerSetName;
     }
 
-    public Boolean getCanSetStickerSet() {
+    public Message getCanSetStickerSet() {
         return canSetStickerSet;
     }
 
