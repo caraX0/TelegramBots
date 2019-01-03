@@ -1,6 +1,5 @@
 package org.telegram.telegrambots.meta.api.methods.groupadministration;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -9,9 +8,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -93,23 +89,9 @@ public class RestrictChatMember extends BotApiMethod<Boolean> {
         return untilDate;
     }
 
-    public RestrictChatMember setUntilDate(Integer untilDateInSeconds) {
-        this.untilDate = untilDateInSeconds;
+    public RestrictChatMember setUntilDate(Integer untilDate) {
+        this.untilDate = untilDate;
         return this;
-    }
-
-    @JsonIgnore
-    public RestrictChatMember setUntilDate(Instant instant) {
-        return setUntilDate((int) instant.getEpochSecond());
-    }
-
-    @JsonIgnore
-    public RestrictChatMember setUntilDate(ZonedDateTime date) {
-        return setUntilDate(date.toInstant());
-    }
-
-    public RestrictChatMember forTimePeriod(Duration duration) {
-        return setUntilDate(Instant.now().plusMillis(duration.toMillis()));
     }
 
     public Boolean getCanSendMessages() {

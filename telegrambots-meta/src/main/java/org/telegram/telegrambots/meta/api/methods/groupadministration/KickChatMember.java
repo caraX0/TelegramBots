@@ -1,6 +1,5 @@
 package org.telegram.telegrambots.meta.api.methods.groupadministration;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -10,9 +9,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -85,23 +81,9 @@ public class KickChatMember extends BotApiMethod<Boolean> {
         return untilDate;
     }
 
-    public KickChatMember setUntilDate(Integer untilDateInSeconds) {
-        this.untilDate = untilDateInSeconds;
+    public KickChatMember setUntilDate(Integer untilDate) {
+        this.untilDate = untilDate;
         return this;
-    }
-
-    @JsonIgnore
-    public KickChatMember setUntilDate(Instant instant) {
-        return setUntilDate((int) instant.getEpochSecond());
-    }
-
-    @JsonIgnore
-    public KickChatMember setUntilDate(ZonedDateTime date) {
-        return setUntilDate(date.toInstant());
-    }
-
-    public KickChatMember forTimePeriod(Duration duration) {
-        return setUntilDate(Instant.now().plusMillis(duration.toMillis()));
     }
 
     @Override
