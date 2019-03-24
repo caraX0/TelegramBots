@@ -381,14 +381,6 @@ public class Message implements BotApiObject {
         return this.video != null;
     }
 
-    public boolean hasAudio(){
-        return this.audio != null;
-    }
-
-    public boolean hasVoice(){
-        return this.voice != null;
-    }
-
     public boolean isReply() {
         return this.replyToMessage != null;
     }
