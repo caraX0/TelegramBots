@@ -9,7 +9,6 @@ import org.telegram.telegrambots.meta.api.objects.payments.Invoice;
 import org.telegram.telegrambots.meta.api.objects.payments.SuccessfulPayment;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -283,7 +282,7 @@ public class Message implements BotApiObject {
     }
 
     public List<User> getNewChatMembers() {
-        return newChatMembers == null ? new ArrayList<>() : newChatMembers;
+        return newChatMembers;
     }
 
     public User getLeftChatMember() {
@@ -380,14 +379,6 @@ public class Message implements BotApiObject {
 
     public boolean hasVideo() {
         return this.video != null;
-    }
-
-    public boolean hasAudio(){
-        return this.audio != null;
-    }
-
-    public boolean hasVoice(){
-        return this.voice != null;
     }
 
     public boolean isReply() {

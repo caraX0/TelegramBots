@@ -29,7 +29,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidParameterException;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.telegram.telegrambots.Constants.SOCKET_TIMEOUT;
 
@@ -41,7 +40,7 @@ import static org.telegram.telegrambots.Constants.SOCKET_TIMEOUT;
 public class DefaultBotSession implements BotSession {
     private static final String LOGTAG = "BOTSESSION";
 
-    private AtomicBoolean running = new AtomicBoolean(false);
+    private volatile boolean running = false;
 
     private final ConcurrentLinkedDeque<Update> receivedUpdates = new ConcurrentLinkedDeque<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -60,11 +59,11 @@ public class DefaultBotSession implements BotSession {
 
     @Override
     public synchronized void start() {
-        if (running.get()) {
+        if (running) {
             throw new IllegalStateException("Session already running");
         }
 
-        running.set(true);
+        running = true;
 
         lastReceivedUpdate = 0;
 
@@ -79,11 +78,11 @@ public class DefaultBotSession implements BotSession {
 
     @Override
     public synchronized void stop() {
-        if (!running.get()) {
+        if (!running) {
             throw new IllegalStateException("Session already stopped");
         }
 
-        running.set(false);
+        running = false;
 
         if (readerThread != null) {
             readerThread.interrupt();
@@ -127,8 +126,8 @@ public class DefaultBotSession implements BotSession {
     }
 
     @Override
-    public boolean isRunning() {
-        return running.get();
+    public synchronized boolean isRunning() {
+        return running;
     }
 
     private class ReaderThread extends Thread implements UpdatesReader {
@@ -179,9 +178,9 @@ public class DefaultBotSession implements BotSession {
         @Override
         public void run() {
             setPriority(Thread.MIN_PRIORITY);
-            while (running.get()) {
+            while (running) {
                 synchronized (lock) {
-                    if (running.get()) {
+                    if (running) {
                         try {
                             List<Update> updates = updatesSupplier.getUpdates();
                             if (updates.isEmpty()) {
@@ -200,7 +199,7 @@ public class DefaultBotSession implements BotSession {
                                 }
                             }
                         } catch (InterruptedException e) {
-                            if (!running.get()) {
+                            if (!running) {
                                 receivedUpdates.clear();
                             }
                             BotLogger.debug(LOGTAG, e);
@@ -212,7 +211,7 @@ public class DefaultBotSession implements BotSession {
                                     lock.wait(exponentialBackOff.nextBackOffMillis());
                                 }
                             } catch (InterruptedException e) {
-                                if (!running.get()) {
+                                if (!running) {
                                     receivedUpdates.clear();
                                 }
                                 BotLogger.debug(LOGTAG, e);
@@ -291,7 +290,7 @@ public class DefaultBotSession implements BotSession {
         @Override
         public void run() {
             setPriority(Thread.MIN_PRIORITY);
-            while (running.get()) {
+            while (running) {
                 try {
                     List<Update> updates = getUpdateList();
                     if (updates.isEmpty()) {
