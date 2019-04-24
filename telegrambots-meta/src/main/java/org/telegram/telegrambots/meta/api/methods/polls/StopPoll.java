@@ -60,15 +60,6 @@ public class StopPoll extends BotApiMethod<Poll> {
         return this;
     }
 
-    public Integer getMessageId() {
-        return messageId;
-    }
-
-    public StopPoll setMessageId(Integer messageId) {
-        this.messageId = messageId;
-        return this;
-    }
-
     @Override
     public String getMethod() {
         return PATH;
