@@ -1,37 +1,37 @@
 package org.telegram.abilitybots.api.bot;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.telegram.abilitybots.api.objects.Ability;
 import org.telegram.abilitybots.api.util.AbilityExtension;
 
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static junit.framework.TestCase.assertTrue;
 import static org.telegram.abilitybots.api.db.MapDBContext.offlineInstance;
 import static org.telegram.abilitybots.api.objects.Locality.ALL;
 import static org.telegram.abilitybots.api.objects.Privacy.PUBLIC;
 
-class ExtensionTest {
+public class ExtensionTest {
   private ExtensionUsingBot bot;
 
-  @BeforeEach
-  void setUp() {
+  @Before
+  public void setUp() {
     bot = new ExtensionUsingBot();
   }
 
-  @AfterEach
-  void tearDown() throws IOException {
-    bot.db.clear();
-    bot.db.close();
+  @Test
+  public void methodReturningAbilities() {
+    assertTrue("Failed to find Ability in directly declared in root extension/bot", hasAbilityNamed("direct"));
+    assertTrue("Failed to find Ability in directly declared in extension returned by method returning the AbilityExtension class", hasAbilityNamed("returningSuperClass0abc"));
+    assertTrue("Failed to find Ability in directly declared in extension returned by method returning the AbilityExtension subclass", hasAbilityNamed("returningSubClass0abc"));
   }
 
-  @Test
-  void methodReturningAbilities() {
-    assertTrue(hasAbilityNamed("direct"), "Failed to find Ability in directly declared in root extension/bot");
-    assertTrue(hasAbilityNamed("returningSuperClass0abc"), "Failed to find Ability in directly declared in extension returned by method returning the AbilityExtension class");
-    assertTrue(hasAbilityNamed("returningSubClass0abc"), "Failed to find Ability in directly declared in extension returned by method returning the AbilityExtension subclass");
+  @After
+  public void tearDown() throws IOException {
+    bot.db.clear();
+    bot.db.close();
   }
 
   private boolean hasAbilityNamed(String name) {
@@ -39,7 +39,7 @@ class ExtensionTest {
   }
 
   public static class ExtensionUsingBot extends AbilityBot {
-    ExtensionUsingBot() {
+    public ExtensionUsingBot() {
       super("", "", offlineInstance("testing"));
     }
 
@@ -71,7 +71,7 @@ class ExtensionTest {
   public static class AbilityBotExtension implements AbilityExtension {
     private String name;
 
-    AbilityBotExtension(String name) {
+    public AbilityBotExtension(String name) {
       this.name = name;
     }
 
