@@ -1,13 +1,11 @@
 package org.telegram.abilitybots.api.sender;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.updateshandlers.SentCallback;
+import org.telegram.telegrambots.meta.logging.BotLogger;
 
 import java.io.Serializable;
 import java.util.Optional;
@@ -19,7 +17,7 @@ import java.util.Optional;
  * @author Abbas Abou Daya
  */
 public class SilentSender {
-  private static final Logger log = LogManager.getLogger(SilentSender.class);
+  private static final String TAG = SilentSender.class.getSimpleName();
 
   private final MessageSender sender;
 
@@ -48,17 +46,17 @@ public class SilentSender {
     try {
       return Optional.ofNullable(sender.execute(method));
     } catch (TelegramApiException e) {
-      log.error("Could not execute bot API method", e);
+      BotLogger.error("Could not execute bot API method", TAG, e);
       return Optional.empty();
     }
   }
 
-  public <T extends Serializable, Method extends BotApiMethod<T>, Callback extends SentCallback<T>> void
-  executeAsync(Method method, Callback callable) {
+  public <T extends Serializable, Method extends BotApiMethod<T>> Optional<T> executeAsync(Method method) {
     try {
-      sender.executeAsync(method, callable);
+      return Optional.ofNullable(sender.execute(method));
     } catch (TelegramApiException e) {
-      log.error("Could not execute bot API method", e);
+      BotLogger.error("Could not execute bot API method", TAG, e);
+      return Optional.empty();
     }
   }
 

@@ -25,7 +25,6 @@ public class Chat implements BotApiObject {
     private static final String PINNEDMESSAGE_FIELD = "pinned_message";
     private static final String STICKERSETNAME_FIELD = "sticker_set_name";
     private static final String CANSETSTICKERSET_FIELD = "can_set_sticker_set";
-    private static final String PERMISSIONS_FIELD = "permissions";
 
     private static final String USERCHATTYPE = "private";
     private static final String GROUPCHATTYPE = "group";
@@ -58,23 +57,15 @@ public class Chat implements BotApiObject {
     @JsonProperty(PHOTO_FIELD)
     private ChatPhoto photo; ///< Optional. Chat photo. Returned only in getChat.
     @JsonProperty(DESCRIPTION_FIELD)
-    private String description; ///< Optional. Description, for groups, supergroups and channel chats. Returned only in getChat.
-    /**
-     * Optional. Chat invite link, for groups, supergroups and channel chats.
-     * Each administrator in a chat generates their own invite links, so the bot must first generate the link using
-     * exportChatInviteLink.
-     * Each Returned only in getChat.
-     */
+    private String description; ///< Optional. Description, for supergroups and channel chats. Returned only in getChat.
     @JsonProperty(INVITELINK_FIELD)
-    private String inviteLink;
+    private String inviteLink; ///< Optional. Chat invite link, for supergroups and channel chats. Returned only in getChat.
     @JsonProperty(PINNEDMESSAGE_FIELD)
     private Message pinnedMessage; ///< Optional. Pinned message, for groups, supergroups and channels. Returned only in getChat.
     @JsonProperty(STICKERSETNAME_FIELD)
     private String stickerSetName; ///< Optional. For supergroups, name of Group sticker set. Returned only in getChat.
     @JsonProperty(CANSETSTICKERSET_FIELD)
     private Boolean canSetStickerSet; ///< Optional. True, if the bot can change group the sticker set. Returned only in getChat.
-    @JsonProperty(PERMISSIONS_FIELD)
-    private ChatPermissions permissions; ///< Optional. Default chat member permissions, for groups and supergroups. Returned only in getChat.
 
     public Chat() {
         super();
@@ -116,14 +107,6 @@ public class Chat implements BotApiObject {
         return userName;
     }
 
-    public ChatPermissions getPermissions() {
-        return permissions;
-    }
-
-    /**
-     * @deprecated Use {@link #getPermissions()} instead
-     */
-    @Deprecated
     public Boolean getAllMembersAreAdministrators() {
         return allMembersAreAdministrators;
     }
@@ -168,7 +151,6 @@ public class Chat implements BotApiObject {
                 ", pinnedMessage=" + pinnedMessage +
                 ", stickerSetName='" + stickerSetName + '\'' +
                 ", canSetStickerSet=" + canSetStickerSet +
-                ", permissions=" + permissions +
                 '}';
     }
 }
