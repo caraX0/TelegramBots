@@ -3,9 +3,11 @@ package org.telegram.abilitybots.api.bot;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.telegram.abilitybots.api.db.DBContext;
 import org.telegram.abilitybots.api.objects.*;
 import org.telegram.abilitybots.api.sender.MessageSender;
@@ -32,11 +34,12 @@ import static java.util.Optional.empty;
 import static org.apache.commons.io.FileUtils.deleteQuietly;
 import static org.apache.commons.lang3.ArrayUtils.addAll;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static org.telegram.abilitybots.api.bot.DefaultBot.getDefaultBuilder;
+import static org.telegram.abilitybots.api.bot.TestUtils.*;
+import static org.telegram.abilitybots.api.bot.TestUtils.CREATOR;
 import static org.telegram.abilitybots.api.db.MapDBContext.offlineInstance;
 import static org.telegram.abilitybots.api.objects.Flag.DOCUMENT;
 import static org.telegram.abilitybots.api.objects.Flag.MESSAGE;
@@ -54,16 +57,14 @@ public class AbilityBotTest {
   private static final long GROUP_ID = 10L;
   private static final String TEST = "test";
   private static final String[] TEXT = {TEST};
-  public static final User USER = new User(1, "first", false, "last", "username", null);
-  public static final User CREATOR = new User(1337, "creatorFirst", false, "creatorLast", "creatorUsername", null);
 
   private DefaultBot bot;
   private DBContext db;
   private MessageSender sender;
   private SilentSender silent;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     db = offlineInstance("db");
     bot = new DefaultBot(EMPTY, EMPTY, db);
 
@@ -74,9 +75,15 @@ public class AbilityBotTest {
     bot.silent = silent;
   }
 
+  @AfterEach
+  void tearDown() throws IOException {
+    db.clear();
+    db.close();
+  }
+
   @Test
-  public void sendsPrivacyViolation() {
-    Update update = mockFullUpdate(USER, "/admin");
+  void sendsPrivacyViolation() {
+    Update update = mockFullUpdate(bot, USER, "/admin");
 
     bot.onUpdateReceived(update);
 
@@ -84,8 +91,8 @@ public class AbilityBotTest {
   }
 
   @Test
-  public void sendsLocalityViolation() {
-    Update update = mockFullUpdate(USER, "/group");
+  void sendsLocalityViolation() {
+    Update update = mockFullUpdate(bot, USER, "/group");
 
     bot.onUpdateReceived(update);
 
@@ -94,8 +101,8 @@ public class AbilityBotTest {
   }
 
   @Test
-  public void sendsInputArgsViolation() {
-    Update update = mockFullUpdate(USER, "/count 1 2 3");
+  void sendsInputArgsViolation() {
+    Update update = mockFullUpdate(bot, USER, "/count 1 2 3");
 
     bot.onUpdateReceived(update);
 
@@ -103,8 +110,8 @@ public class AbilityBotTest {
   }
 
   @Test
-  public void canProcessRepliesIfSatisfyRequirements() {
-    Update update = mockFullUpdate(USER, "must reply");
+  void canProcessRepliesIfSatisfyRequirements() {
+    Update update = mockFullUpdate(bot, USER, "must reply");
 
     // False means the update was not pushed down the stream since it has been consumed by the reply
     assertFalse(bot.filterReply(update));
@@ -112,7 +119,7 @@ public class AbilityBotTest {
   }
 
   @Test
-  public void canBackupDB() throws TelegramApiException {
+  void canBackupDB() throws TelegramApiException {
     MessageContext context = defaultContext();
 
     bot.backupDB().action().accept(context);
@@ -122,21 +129,23 @@ public class AbilityBotTest {
   }
 
   @Test
-  public void canRecoverDB() throws TelegramApiException, IOException {
+  void canRecoverDB() throws TelegramApiException, IOException {
     Update update = mockBackupUpdate();
     Object backup = getDbBackup();
     java.io.File backupFile = createBackupFile(backup);
 
-    when(sender.downloadFile(any(File.class))).thenReturn(backupFile);
+    // Support for null parameter matching since due to mocking API changes
+    when(sender.downloadFile(ArgumentMatchers.<File>isNull())).thenReturn(backupFile);
+
     bot.recoverDB().replies().get(0).actOn(update);
 
     verify(silent, times(1)).send(RECOVER_SUCCESS, GROUP_ID);
-    assertEquals("Bot recovered but the DB is still not in sync", db.getSet(TEST), newHashSet(TEST));
-    assertTrue("Could not delete backup file", backupFile.delete());
+    assertEquals(db.getSet(TEST), newHashSet(TEST), "Bot recovered but the DB is still not in sync");
+    assertTrue(backupFile.delete(), "Could not delete backup file");
   }
 
   @Test
-  public void canFilterOutReplies() {
+  void canFilterOutReplies() {
     Update update = mock(Update.class);
     when(update.hasMessage()).thenReturn(false);
 
@@ -144,7 +153,7 @@ public class AbilityBotTest {
   }
 
   @Test
-  public void canDemote() {
+  void canDemote() {
     addUsers(USER);
     bot.admins().add(USER.getId());
 
@@ -154,11 +163,11 @@ public class AbilityBotTest {
 
     Set<Integer> actual = bot.admins();
     Set<Integer> expected = emptySet();
-    assertEquals("Could not sudont super-admin", expected, actual);
+    assertEquals(expected, actual, "Could not sudont super-admin");
   }
 
   @Test
-  public void canPromote() {
+  void canPromote() {
     addUsers(USER);
 
     MessageContext context = defaultContext();
@@ -167,11 +176,11 @@ public class AbilityBotTest {
 
     Set<Integer> actual = bot.admins();
     Set<Integer> expected = newHashSet(USER.getId());
-    assertEquals("Could not sudo user", expected, actual);
+    assertEquals(expected, actual, "Could not sudo user");
   }
 
   @Test
-  public void canBanUser() {
+  void canBanUser() {
     addUsers(USER);
     MessageContext context = defaultContext();
 
@@ -179,11 +188,11 @@ public class AbilityBotTest {
 
     Set<Integer> actual = bot.blacklist();
     Set<Integer> expected = newHashSet(USER.getId());
-    assertEquals("The ban was not emplaced", expected, actual);
+    assertEquals(expected, actual, "The ban was not emplaced");
   }
 
   @Test
-  public void canUnbanUser() {
+  void canUnbanUser() {
     addUsers(USER);
     bot.blacklist().add(USER.getId());
 
@@ -193,7 +202,7 @@ public class AbilityBotTest {
 
     Set<Integer> actual = bot.blacklist();
     Set<Integer> expected = newHashSet();
-    assertEquals("The ban was not lifted", expected, actual);
+    assertEquals(expected, actual, "The ban was not lifted");
   }
 
   @NotNull
@@ -202,7 +211,7 @@ public class AbilityBotTest {
   }
 
   @Test
-  public void cannotBanCreator() {
+  void cannotBanCreator() {
     addUsers(USER, CREATOR);
     MessageContext context = mockContext(USER, GROUP_ID, CREATOR.getUserName());
 
@@ -210,7 +219,7 @@ public class AbilityBotTest {
 
     Set<Integer> actual = bot.blacklist();
     Set<Integer> expected = newHashSet(USER.getId());
-    assertEquals("Impostor was not added to the blacklist", expected, actual);
+    assertEquals(expected, actual, "Impostor was not added to the blacklist");
   }
 
   private void addUsers(User... users) {
@@ -221,18 +230,18 @@ public class AbilityBotTest {
   }
 
   @Test
-  public void creatorCanClaimBot() {
+  void creatorCanClaimBot() {
     MessageContext context = mockContext(CREATOR, GROUP_ID);
 
     bot.claimCreator().action().accept(context);
 
     Set<Integer> actual = bot.admins();
     Set<Integer> expected = newHashSet(CREATOR.getId());
-    assertEquals("Creator was not properly added to the super admins set", expected, actual);
+    assertEquals(expected, actual, "Creator was not properly added to the super admins set");
   }
 
   @Test
-  public void bannedCreatorPassesBlacklistCheck() {
+  void bannedCreatorPassesBlacklistCheck() {
     bot.blacklist().add(CREATOR.getId());
     Update update = mock(Update.class);
     Message message = mock(Message.class);
@@ -241,11 +250,11 @@ public class AbilityBotTest {
     mockUser(update, message, user);
 
     boolean notBanned = bot.checkBlacklist(update);
-    assertTrue("Creator is banned", notBanned);
+    assertTrue(notBanned, "Creator is banned");
   }
 
   @Test
-  public void canAddUser() {
+  void canAddUser() {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
 
@@ -255,12 +264,12 @@ public class AbilityBotTest {
 
     Map<String, Integer> expectedUserIds = ImmutableMap.of(USER.getUserName(), USER.getId());
     Map<Integer, User> expectedUsers = ImmutableMap.of(USER.getId(), USER);
-    assertEquals("User was not added", expectedUserIds, bot.userIds());
-    assertEquals("User was not added", expectedUsers, bot.users());
+    assertEquals(expectedUserIds, bot.userIds(), "User was not added");
+    assertEquals(expectedUsers, bot.users(), "User was not added");
   }
 
   @Test
-  public void canEditUser() {
+  void canEditUser() {
     addUsers(USER);
     Update update = mock(Update.class);
     Message message = mock(Message.class);
@@ -277,23 +286,23 @@ public class AbilityBotTest {
 
     Map<String, Integer> expectedUserIds = ImmutableMap.of(changedUser.getUserName(), changedUser.getId());
     Map<Integer, User> expectedUsers = ImmutableMap.of(changedUser.getId(), changedUser);
-    assertEquals("User was not properly edited", bot.userIds(), expectedUserIds);
-    assertEquals("User was not properly edited", expectedUsers, expectedUsers);
+    assertEquals(bot.userIds(), expectedUserIds, "User was not properly edited");
+    assertEquals(expectedUsers, expectedUsers, "User was not properly edited");
   }
 
   @Test
-  public void canValidateAbility() {
+  void canValidateAbility() {
     Trio<Update, Ability, String[]> invalidPair = Trio.of(null, null, null);
     Ability validAbility = getDefaultBuilder().build();
     Trio<Update, Ability, String[]> validPair = Trio.of(null, validAbility, null);
 
-    assertFalse("Bot can't validate ability properly", bot.validateAbility(invalidPair));
-    assertTrue("Bot can't validate ability properly", bot.validateAbility(validPair));
+    assertFalse(bot.validateAbility(invalidPair), "Bot can't validate ability properly");
+    assertTrue(bot.validateAbility(validPair), "Bot can't validate ability properly");
   }
 
   @Test
-  public void canCheckInput() {
-    Update update = mockFullUpdate(USER, "/something");
+  void canCheckInput() {
+    Update update = mockFullUpdate(bot, USER, "/something");
     Ability abilityWithOneInput = getDefaultBuilder()
         .build();
     Ability abilityWithZeroInput = getDefaultBuilder()
@@ -303,19 +312,19 @@ public class AbilityBotTest {
     Trio<Update, Ability, String[]> trioOneArg = Trio.of(update, abilityWithOneInput, TEXT);
     Trio<Update, Ability, String[]> trioZeroArg = Trio.of(update, abilityWithZeroInput, TEXT);
 
-    assertTrue("Unexpected result when applying token filter", bot.checkInput(trioOneArg));
+    assertTrue(bot.checkInput(trioOneArg), "Unexpected result when applying token filter");
 
     trioOneArg = Trio.of(update, abilityWithOneInput, addAll(TEXT, TEXT));
-    assertFalse("Unexpected result when applying token filter", bot.checkInput(trioOneArg));
+    assertFalse(bot.checkInput(trioOneArg), "Unexpected result when applying token filter");
 
-    assertTrue("Unexpected result  when applying token filter", bot.checkInput(trioZeroArg));
+    assertTrue(bot.checkInput(trioZeroArg), "Unexpected result  when applying token filter");
 
     trioZeroArg = Trio.of(update, abilityWithZeroInput, EMPTY_ARRAY);
-    assertTrue("Unexpected result when applying token filter", bot.checkInput(trioZeroArg));
+    assertTrue(bot.checkInput(trioZeroArg), "Unexpected result when applying token filter");
   }
 
   @Test
-  public void canCheckPrivacy() {
+  void canCheckPrivacy() {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
     User user = mock(User.class);
@@ -331,14 +340,14 @@ public class AbilityBotTest {
 
     mockUser(update, message, user);
 
-    assertTrue("Unexpected result when checking for privacy", bot.checkPrivacy(publicTrio));
-    assertFalse("Unexpected result when checking for privacy", bot.checkPrivacy(groupAdminTrio));
-    assertFalse("Unexpected result when checking for privacy", bot.checkPrivacy(adminTrio));
-    assertFalse("Unexpected result when checking for privacy", bot.checkPrivacy(creatorTrio));
+    assertTrue(bot.checkPrivacy(publicTrio), "Unexpected result when checking for privacy");
+    assertFalse(bot.checkPrivacy(groupAdminTrio), "Unexpected result when checking for privacy");
+    assertFalse(bot.checkPrivacy(adminTrio), "Unexpected result when checking for privacy");
+    assertFalse(bot.checkPrivacy(creatorTrio), "Unexpected result when checking for privacy");
   }
 
   @Test
-  public void canValidateGroupAdminPrivacy() {
+  void canValidateGroupAdminPrivacy() {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
     User user = mock(User.class);
@@ -355,11 +364,11 @@ public class AbilityBotTest {
 
     when(silent.execute(any(GetChatAdministrators.class))).thenReturn(Optional.of(newArrayList(member)));
 
-    assertTrue("Unexpected result when checking for privacy", bot.checkPrivacy(groupAdminTrio));
+    assertTrue(bot.checkPrivacy(groupAdminTrio), "Unexpected result when checking for privacy");
   }
 
   @Test
-  public void canRestrictNormalUsersFromGroupAdminAbilities() {
+  void canRestrictNormalUsersFromGroupAdminAbilities() {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
     User user = mock(User.class);
@@ -372,11 +381,11 @@ public class AbilityBotTest {
 
     when(silent.execute(any(GetChatAdministrators.class))).thenReturn(empty());
 
-    assertFalse("Unexpected result when checking for privacy", bot.checkPrivacy(groupAdminTrio));
+    assertFalse(bot.checkPrivacy(groupAdminTrio), "Unexpected result when checking for privacy");
   }
 
   @Test
-  public void canBlockAdminsFromCreatorAbilities() {
+  void canBlockAdminsFromCreatorAbilities() {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
     User user = mock(User.class);
@@ -387,11 +396,11 @@ public class AbilityBotTest {
     bot.admins().add(USER.getId());
     mockUser(update, message, user);
 
-    assertFalse("Unexpected result when checking for privacy", bot.checkPrivacy(creatorTrio));
+    assertFalse(bot.checkPrivacy(creatorTrio), "Unexpected result when checking for privacy");
   }
 
   @Test
-  public void canCheckLocality() {
+  void canCheckLocality() {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
     User user = mock(User.class);
@@ -406,13 +415,13 @@ public class AbilityBotTest {
     mockUser(update, message, user);
     when(message.isUserMessage()).thenReturn(true);
 
-    assertTrue("Unexpected result when checking for locality", bot.checkLocality(publicTrio));
-    assertTrue("Unexpected result when checking for locality", bot.checkLocality(userTrio));
-    assertFalse("Unexpected result when checking for locality", bot.checkLocality(groupTrio));
+    assertTrue(bot.checkLocality(publicTrio), "Unexpected result when checking for locality");
+    assertTrue(bot.checkLocality(userTrio), "Unexpected result when checking for locality");
+    assertFalse(bot.checkLocality(groupTrio), "Unexpected result when checking for locality");
   }
 
   @Test
-  public void canRetrieveContext() {
+  void canRetrieveContext() {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
     Ability ability = getDefaultBuilder().build();
@@ -424,17 +433,17 @@ public class AbilityBotTest {
     Pair<MessageContext, Ability> actualPair = bot.getContext(trio);
     Pair<MessageContext, Ability> expectedPair = Pair.of(newContext(update, USER, GROUP_ID, TEXT), ability);
 
-    assertEquals("Unexpected result when fetching for context", expectedPair, actualPair);
+    assertEquals(expectedPair, actualPair, "Unexpected result when fetching for context");
   }
 
   @Test
-  public void defaultGlobalFlagIsTrue() {
+  void defaultGlobalFlagIsTrue() {
     Update update = mock(Update.class);
-    assertTrue("Unexpected result when checking for the default global flags", bot.checkGlobalFlags(update));
+    assertTrue(bot.checkGlobalFlags(update), "Unexpected result when checking for the default global flags");
   }
 
-  @Test(expected = ArithmeticException.class)
-  public void canConsumeUpdate() {
+  @Test
+  void canConsumeUpdate() {
     Ability ability = getDefaultBuilder()
         .action((context) -> {
           int x = 1 / 0;
@@ -443,11 +452,11 @@ public class AbilityBotTest {
 
     Pair<MessageContext, Ability> pair = Pair.of(context, ability);
 
-    bot.consumeUpdate(pair);
+    Assertions.assertThrows(ArithmeticException.class, () -> bot.consumeUpdate(pair));
   }
 
   @Test
-  public void canFetchAbility() {
+  void canFetchAbility() {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
 
@@ -462,11 +471,11 @@ public class AbilityBotTest {
     Ability expected = bot.testAbility();
     Ability actual = trio.b();
 
-    assertEquals("Wrong ability was fetched", expected, actual);
+    assertEquals(expected, actual, "Wrong ability was fetched");
   }
 
   @Test
-  public void canFetchAbilityCaseInsensitive() {
+  void canFetchAbilityCaseInsensitive() {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
 
@@ -481,11 +490,11 @@ public class AbilityBotTest {
     Ability expected = bot.testAbility();
     Ability actual = trio.b();
 
-    assertEquals("Wrong ability was fetched", expected, actual);
+    assertEquals(expected, actual, "Wrong ability was fetched");
   }
 
   @Test
-  public void canFetchDefaultAbility() {
+  void canFetchDefaultAbility() {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
 
@@ -498,11 +507,11 @@ public class AbilityBotTest {
     Ability expected = bot.defaultAbility();
     Ability actual = trio.b();
 
-    assertEquals("Wrong ability was fetched", expected, actual);
+    assertEquals(expected, actual, "Wrong ability was fetched");
   }
 
   @Test
-  public void canCheckAbilityFlags() {
+  void canCheckAbilityFlags() {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
 
@@ -517,12 +526,12 @@ public class AbilityBotTest {
     Trio<Update, Ability, String[]> docTrio = Trio.of(update, documentAbility, TEXT);
     Trio<Update, Ability, String[]> textTrio = Trio.of(update, textAbility, TEXT);
 
-    assertFalse("Unexpected result when checking for message flags", bot.checkMessageFlags(docTrio));
-    assertTrue("Unexpected result when checking for message flags", bot.checkMessageFlags(textTrio));
+    assertFalse(bot.checkMessageFlags(docTrio), "Unexpected result when checking for message flags");
+    assertTrue(bot.checkMessageFlags(textTrio), "Unexpected result when checking for message flags");
   }
 
   @Test
-  public void canReportCommands() {
+  void canReportCommands() {
     MessageContext context = mockContext(USER, GROUP_ID);
 
     bot.reportCommands().action().accept(context);
@@ -530,27 +539,8 @@ public class AbilityBotTest {
     verify(silent, times(1)).send("default - dis iz default command", GROUP_ID);
   }
 
-  @NotNull
-  public static MessageContext mockContext(User user) {
-    return mockContext(user, user.getId());
-  }
-
-  @NotNull
-  public static MessageContext mockContext(User user, long groupId, String... args) {
-    Update update = mock(Update.class);
-    Message message = mock(Message.class);
-
-    when(update.hasMessage()).thenReturn(true);
-    when(update.getMessage()).thenReturn(message);
-
-    when(message.getFrom()).thenReturn(user);
-    when(message.hasText()).thenReturn(true);
-
-    return newContext(update, user, groupId, args);
-  }
-
   @Test
-  public void canPrintCommandsBasedOnPrivacy() {
+  void canPrintCommandsBasedOnPrivacy() {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
 
@@ -566,7 +556,7 @@ public class AbilityBotTest {
   }
 
   @Test
-  public void printsOnlyPublicCommandsForNormalUser() {
+  void printsOnlyPublicCommandsForNormalUser() {
     Update update = mock(Update.class);
     Message message = mock(Message.class);
 
@@ -580,33 +570,6 @@ public class AbilityBotTest {
 
     String expected = "PUBLIC\n/commands\n/count\n/default - dis iz default command\n/group\n/test";
     verify(silent, times(1)).send(expected, GROUP_ID);
-  }
-
-  @After
-  public void tearDown() throws IOException {
-    db.clear();
-    db.close();
-  }
-
-  @NotNull
-  private Update mockFullUpdate(User user, String args) {
-    bot.users().put(USER.getId(), USER);
-    bot.users().put(CREATOR.getId(), CREATOR);
-    bot.userIds().put(CREATOR.getUserName(), CREATOR.getId());
-    bot.userIds().put(USER.getUserName(), USER.getId());
-
-    bot.admins().add(CREATOR.getId());
-
-    Update update = mock(Update.class);
-    when(update.hasMessage()).thenReturn(true);
-    Message message = mock(Message.class);
-    when(message.getFrom()).thenReturn(user);
-    when(message.getText()).thenReturn(args);
-    when(message.hasText()).thenReturn(true);
-    when(message.isUserMessage()).thenReturn(true);
-    when(message.getChatId()).thenReturn((long) user.getId());
-    when(update.getMessage()).thenReturn(message);
-    return update;
   }
 
   private void mockUser(Update update, Message message, User user) {
