@@ -1,19 +1,14 @@
 package org.telegram.abilitybots.api.objects;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 
 /**
@@ -23,24 +18,18 @@ import static java.util.Arrays.asList;
  *
  * @author Abbas Abou Daya
  */
-public class Reply {
+public final class Reply {
   public final List<Predicate<Update>> conditions;
   public final Consumer<Update> action;
 
-  Reply(List<Predicate<Update>> conditions, Consumer<Update> action) {
-    this.conditions = ImmutableList.<Predicate<Update>>builder()
-        .addAll(conditions)
-        .build();
+  private Reply(List<Predicate<Update>> conditions, Consumer<Update> action) {
+    this.conditions = conditions;
     this.action = action;
-  }
-
-  public static Reply of(Consumer<Update> action, List<Predicate<Update>> conditions) {
-    return new Reply(conditions, action);
   }
 
   @SafeVarargs
   public static Reply of(Consumer<Update> action, Predicate<Update>... conditions) {
-    return Reply.of(action, newArrayList(conditions));
+    return new Reply(asList(conditions), action);
   }
 
   public boolean isOkFor(Update update) {
@@ -51,18 +40,6 @@ public class Reply {
 
   public void actOn(Update update) {
     action.accept(update);
-  }
-
-  public List<Predicate<Update>> conditions() {
-    return conditions;
-  }
-
-  public Consumer<Update> action() {
-    return action;
-  }
-
-  public Stream<Reply> stream(){
-    return Stream.of(this);
   }
 
   @Override

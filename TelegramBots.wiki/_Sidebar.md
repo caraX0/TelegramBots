@@ -8,7 +8,7 @@
     * [[Simple Example]]
     * [[Hello Ability]]
     * [[Using Replies]]
-    * [[State Machines]]
+    * [[Ability Toggle]]
     * [[Database Handling]]
     * [[Bot Testing]]
     * [[Bot Recovery]]
