@@ -3,9 +3,9 @@ package org.telegram.telegrambots.meta.test;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.telegram.telegrambots.meta.api.objects.ApiResponse;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.telegram.telegrambots.meta.api.objects.Audio;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -18,67 +18,63 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.Voice;
 import org.telegram.telegrambots.meta.api.objects.inlinequery.ChosenInlineQuery;
 import org.telegram.telegrambots.meta.api.objects.inlinequery.InlineQuery;
+import org.telegram.telegrambots.meta.api.objects.ApiResponse;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 /**
  * @author Ruben Bermudez
  * @version 1.0
  */
-class TestDeserialization {
+public class TestDeserialization {
     private ObjectMapper mapper;
 
-    @BeforeEach
-    void setUp() {
+    @Before
+    public void setUp() {
         mapper = new ObjectMapper();
     }
 
     @Test
-    void TestUpdateDeserialization() throws Exception {
+    public void TestUpdateDeserialization() throws Exception {
         Update update = mapper.readValue(TelegramBotsHelper.GetUpdate(), Update.class);
         assertUpdate(update);
     }
 
     @Test
-    void TestUpdateDeserializationWithInlineKeyboard() throws Exception {
+    public void TestUpdateDeserializationWithInlineKeyboard() throws Exception {
         Update update = mapper.readValue(TelegramBotsHelper.GetUpdateWithMessageInCallbackQuery(), Update.class);
-        assertNotNull(update);
-        assertNotNull(update.getCallbackQuery());
-        assertNotNull(update.getCallbackQuery().getMessage());
-        assertNotNull(update.getCallbackQuery().getMessage().getReplyMarkup());
+        Assert.assertNotNull(update);
+        Assert.assertNotNull(update.getCallbackQuery());
+        Assert.assertNotNull(update.getCallbackQuery().getMessage());
+        Assert.assertNotNull(update.getCallbackQuery().getMessage().getReplyMarkup());
     }
 
     @Test
-    void TestResponseWithoutErrorDeserialization() throws IOException {
+    public void TestResponseWithoutErrorDeserialization() throws IOException {
         ApiResponse<ArrayList<Update>> result = mapper.readValue(TelegramBotsHelper.GetResponseWithoutError(), new TypeReference<ApiResponse<ArrayList<Update>>>(){});
-        assertNotNull(result);
-        assertTrue(result.getOk());
-        assertEquals(1, result.getResult().size());
+        Assert.assertNotNull(result);
+        Assert.assertTrue(result.getOk());
+        Assert.assertEquals(1, result.getResult().size());
         assertUpdate(result.getResult().get(0));
     }
 
     @Test
-    void TestResponseWithErrorDeserialization() throws IOException {
+    public void TestResponseWithErrorDeserialization() throws IOException {
         ApiResponse<ArrayList<Update>> result = mapper.readValue(TelegramBotsHelper.GetResponseWithError(), new TypeReference<ApiResponse<ArrayList<Update>>>(){});
-        assertNotNull(result);
-        assertFalse(result.getOk());
-        assertEquals(Integer.valueOf(400), result.getErrorCode());
-        assertEquals("Error descriptions", result.getErrorDescription());
-        assertNotNull(result.getParameters());
-        assertEquals(Long.valueOf(12345), result.getParameters().getMigrateToChatId());
-        assertEquals(Integer.valueOf(12), result.getParameters().getRetryAfter());
+        Assert.assertNotNull(result);
+        Assert.assertFalse(result.getOk());
+        Assert.assertEquals(Integer.valueOf(400), result.getErrorCode());
+        Assert.assertEquals("Error descriptions", result.getErrorDescription());
+        Assert.assertNotNull(result.getParameters());
+        Assert.assertEquals(Long.valueOf(12345), result.getParameters().getMigrateToChatId());
+        Assert.assertEquals(Integer.valueOf(12), result.getParameters().getRetryAfter());
     }
 
     private void assertUpdate(Update update) {
-        assertNotNull(update);
-        assertEquals((Integer) 10000, update.getUpdateId());
+        Assert.assertNotNull(update);
+        Assert.assertEquals((Integer) 10000, update.getUpdateId());
         assertEditedMessage(update.getEditedMessage());
         assertCallbackQuery(update.getCallbackQuery());
         assertInlineQuery(update.getInlineQuery());
@@ -87,11 +83,11 @@ class TestDeserialization {
     }
 
     private void assertMessage(Message message) {
-        assertNotNull(message);
-        assertEquals(Integer.valueOf(1441645532), message.getDate());
-        assertEquals(Integer.valueOf(1365), message.getMessageId());
-        assertEquals(Integer.valueOf(1441645550), message.getForwardDate());
-        assertEquals("Bold and italics", message.getText());
+        Assert.assertNotNull(message);
+        Assert.assertEquals(Integer.valueOf(1441645532), message.getDate());
+        Assert.assertEquals(Integer.valueOf(1365), message.getMessageId());
+        Assert.assertEquals(Integer.valueOf(1441645550), message.getForwardDate());
+        Assert.assertEquals("Bold and italics", message.getText());
         assertPrivateChat(message.getChat());
         assertFromUser(message.getFrom());
         assertForwardFrom(message.getForwardFrom());
@@ -103,119 +99,119 @@ class TestDeserialization {
     }
 
     private void assertDocument(Document document) {
-        assertNotNull(document);
-        assertEquals("AwADBAADbXXXXXXXXXXXGBdhD2l6_XX", document.getFileId());
-        assertEquals("Testfile.pdf", document.getFileName());
-        assertEquals("application/pdf", document.getMimeType());
-        assertEquals(Integer.valueOf(536392), document.getFileSize());
+        Assert.assertNotNull(document);
+        Assert.assertEquals("AwADBAADbXXXXXXXXXXXGBdhD2l6_XX", document.getFileId());
+        Assert.assertEquals("Testfile.pdf", document.getFileName());
+        Assert.assertEquals("application/pdf", document.getMimeType());
+        Assert.assertEquals(Integer.valueOf(536392), document.getFileSize());
     }
 
     private void assertVoice(Voice voice) {
-        assertNotNull(voice);
-        assertEquals("AwADBAADbXXXXXXXXXXXGBdhD2l6_XX", voice.getFileId());
-        assertEquals(Integer.valueOf(5), voice.getDuration());
-        assertEquals("audio/ogg", voice.getMimeType());
-        assertEquals(Integer.valueOf(23000), voice.getFileSize());
+        Assert.assertNotNull(voice);
+        Assert.assertEquals("AwADBAADbXXXXXXXXXXXGBdhD2l6_XX", voice.getFileId());
+        Assert.assertEquals(Integer.valueOf(5), voice.getDuration());
+        Assert.assertEquals("audio/ogg", voice.getMimeType());
+        Assert.assertEquals(Integer.valueOf(23000), voice.getFileSize());
     }
 
     private void assertAudio(Audio audio) {
-        assertNotNull(audio);
-        assertEquals("AwADBAADbXXXXXXXXXXXGBdhD2l6_XX", audio.getFileId());
-        assertEquals(Integer.valueOf(243), audio.getDuration());
-        assertEquals("audio/mpeg", audio.getMimeType());
-        assertEquals(Integer.valueOf(3897500), audio.getFileSize());
-        assertEquals("Testmusicfile", audio.getTitle());
+        Assert.assertNotNull(audio);
+        Assert.assertEquals("AwADBAADbXXXXXXXXXXXGBdhD2l6_XX", audio.getFileId());
+        Assert.assertEquals(Integer.valueOf(243), audio.getDuration());
+        Assert.assertEquals("audio/mpeg", audio.getMimeType());
+        Assert.assertEquals(Integer.valueOf(3897500), audio.getFileSize());
+        Assert.assertEquals("Testmusicfile", audio.getTitle());
     }
 
     private void assertEntities(List<MessageEntity> entities) {
-        assertNotNull(entities);
-        assertEquals(2, entities.size());
-        assertEquals(EntityType.ITALIC, entities.get(0).getType());
-        assertEquals(Integer.valueOf(9), entities.get(0).getOffset());
-        assertEquals(Integer.valueOf(7), entities.get(0).getLength());
-        assertEquals("italics", entities.get(0).getText());
-        assertEquals(EntityType.BOLD, entities.get(1).getType());
-        assertEquals(Integer.valueOf(0), entities.get(1).getOffset());
-        assertEquals(Integer.valueOf(4), entities.get(1).getLength());
-        assertEquals("Bold", entities.get(1).getText());
+        Assert.assertNotNull(entities);
+        Assert.assertEquals(2, entities.size());
+        Assert.assertEquals(EntityType.ITALIC, entities.get(0).getType());
+        Assert.assertEquals(Integer.valueOf(9), entities.get(0).getOffset());
+        Assert.assertEquals(Integer.valueOf(7), entities.get(0).getLength());
+        Assert.assertEquals("italics", entities.get(0).getText());
+        Assert.assertEquals(EntityType.BOLD, entities.get(1).getType());
+        Assert.assertEquals(Integer.valueOf(0), entities.get(1).getOffset());
+        Assert.assertEquals(Integer.valueOf(4), entities.get(1).getLength());
+        Assert.assertEquals("Bold", entities.get(1).getText());
     }
 
     private void assertReplyToMessage(Message replyToMessage) {
-        assertNotNull(replyToMessage);
-        assertEquals(Integer.valueOf(1441645000), replyToMessage.getDate());
-        assertEquals(Integer.valueOf(1334), replyToMessage.getMessageId());
-        assertEquals("Original", replyToMessage.getText());
-        assertNotNull(replyToMessage.getChat());
-        assertEquals("ReplyLastname", replyToMessage.getChat().getLastName());
-        assertEquals("ReplyFirstname", replyToMessage.getChat().getFirstName());
-        assertEquals("Testusername", replyToMessage.getChat().getUserName());
-        assertEquals(Long.valueOf(1111112), replyToMessage.getChat().getId());
+        Assert.assertNotNull(replyToMessage);
+        Assert.assertEquals(Integer.valueOf(1441645000), replyToMessage.getDate());
+        Assert.assertEquals(Integer.valueOf(1334), replyToMessage.getMessageId());
+        Assert.assertEquals("Original", replyToMessage.getText());
+        Assert.assertNotNull(replyToMessage.getChat());
+        Assert.assertEquals("ReplyLastname", replyToMessage.getChat().getLastName());
+        Assert.assertEquals("ReplyFirstname", replyToMessage.getChat().getFirstName());
+        Assert.assertEquals("Testusername", replyToMessage.getChat().getUserName());
+        Assert.assertEquals(Long.valueOf(1111112), replyToMessage.getChat().getId());
     }
 
     private void assertForwardFrom(User forwardFrom) {
-        assertNotNull(forwardFrom);
-        assertEquals("ForwardLastname", forwardFrom.getLastName());
-        assertEquals("ForwardFirstname", forwardFrom.getFirstName());
-        assertEquals(Integer.valueOf(222222), forwardFrom.getId());
+        Assert.assertNotNull(forwardFrom);
+        Assert.assertEquals("ForwardLastname", forwardFrom.getLastName());
+        Assert.assertEquals("ForwardFirstname", forwardFrom.getFirstName());
+        Assert.assertEquals(Integer.valueOf(222222), forwardFrom.getId());
     }
 
     private void assertPrivateChat(Chat chat) {
-        assertNotNull(chat);
-        assertEquals(Long.valueOf(1111111), chat.getId());
-        assertTrue(chat.isUserChat());
-        assertEquals("Test Lastname", chat.getLastName());
-        assertEquals("Test Firstname", chat.getFirstName());
-        assertEquals("Testusername", chat.getUserName());
+        Assert.assertNotNull(chat);
+        Assert.assertEquals(Long.valueOf(1111111), chat.getId());
+        Assert.assertTrue(chat.isUserChat());
+        Assert.assertEquals("Test Lastname", chat.getLastName());
+        Assert.assertEquals("Test Firstname", chat.getFirstName());
+        Assert.assertEquals("Testusername", chat.getUserName());
     }
 
     private void assertChosenInlineQuery(ChosenInlineQuery chosenInlineQuery) {
-        assertNotNull(chosenInlineQuery);
-        assertEquals("12", chosenInlineQuery.getResultId());
-        assertEquals("inline query", chosenInlineQuery.getQuery());
-        assertEquals("1234csdbsk4839", chosenInlineQuery.getInlineMessageId());
+        Assert.assertNotNull(chosenInlineQuery);
+        Assert.assertEquals("12", chosenInlineQuery.getResultId());
+        Assert.assertEquals("inline query", chosenInlineQuery.getQuery());
+        Assert.assertEquals("1234csdbsk4839", chosenInlineQuery.getInlineMessageId());
         assertFromUser(chosenInlineQuery.getFrom());
     }
 
     private void assertInlineQuery(InlineQuery inlineQuery) {
-        assertNotNull(inlineQuery);
-        assertEquals("134567890097", inlineQuery.getId());
-        assertEquals("inline query", inlineQuery.getQuery());
-        assertEquals("offset", inlineQuery.getOffset());
+        Assert.assertNotNull(inlineQuery);
+        Assert.assertEquals("134567890097", inlineQuery.getId());
+        Assert.assertEquals("inline query", inlineQuery.getQuery());
+        Assert.assertEquals("offset", inlineQuery.getOffset());
         assertFromUser(inlineQuery.getFrom());
-        assertNotNull(inlineQuery.getLocation());
-        assertEquals(Float.valueOf("0.234242534"), inlineQuery.getLocation().getLatitude());
-        assertEquals(Float.valueOf("0.234242534"), inlineQuery.getLocation().getLongitude());
+        Assert.assertNotNull(inlineQuery.getLocation());
+        Assert.assertEquals(Float.valueOf("0.234242534"), inlineQuery.getLocation().getLatitude());
+        Assert.assertEquals(Float.valueOf("0.234242534"), inlineQuery.getLocation().getLongitude());
     }
 
     private void assertCallbackQuery(CallbackQuery callbackQuery) {
-        assertNotNull(callbackQuery);
-        assertEquals("4382bfdwdsb323b2d9", callbackQuery.getId());
-        assertEquals("Data from button callback", callbackQuery.getData());
-        assertEquals("1234csdbsk4839", callbackQuery.getInlineMessageId());
+        Assert.assertNotNull(callbackQuery);
+        Assert.assertEquals("4382bfdwdsb323b2d9", callbackQuery.getId());
+        Assert.assertEquals("Data from button callback", callbackQuery.getData());
+        Assert.assertEquals("1234csdbsk4839", callbackQuery.getInlineMessageId());
         assertFromUser(callbackQuery.getFrom());
     }
 
     private void assertEditedMessage(Message message) {
-        assertEquals((Integer) 1441645532, message.getDate());
-        assertEquals((Integer) 1441646600, message.getEditDate());
-        assertEquals((Integer) 1365, message.getMessageId());
-        assertEquals("Edited text", message.getText());
+        Assert.assertEquals((Integer) 1441645532, message.getDate());
+        Assert.assertEquals((Integer) 1441646600, message.getEditDate());
+        Assert.assertEquals((Integer) 1365, message.getMessageId());
+        Assert.assertEquals("Edited text", message.getText());
         assertChannelChat(message.getChat());
         assertFromUser(message.getFrom());
     }
 
     private void assertFromUser(User from) {
-        assertNotNull(from);
-        assertEquals((Integer) 1111111, from.getId());
-        assertEquals("Test Lastname", from.getLastName());
-        assertEquals("Test Firstname", from.getFirstName());
-        assertEquals("Testusername", from.getUserName());
+        Assert.assertNotNull(from);
+        Assert.assertEquals((Integer) 1111111, from.getId());
+        Assert.assertEquals("Test Lastname", from.getLastName());
+        Assert.assertEquals("Test Firstname", from.getFirstName());
+        Assert.assertEquals("Testusername", from.getUserName());
     }
 
     private void assertChannelChat(Chat chat) {
-        assertNotNull(chat);
-        assertEquals(Long.valueOf(-10000000000L), chat.getId());
-        assertTrue(chat.isChannelChat());
-        assertEquals("Test channel", chat.getTitle());
+        Assert.assertNotNull(chat);
+        Assert.assertEquals(Long.valueOf(-10000000000L), chat.getId());
+        Assert.assertTrue(chat.isChannelChat());
+        Assert.assertEquals("Test channel", chat.getTitle());
     }
 }

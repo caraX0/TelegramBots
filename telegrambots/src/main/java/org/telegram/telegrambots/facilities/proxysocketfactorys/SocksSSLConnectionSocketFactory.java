@@ -4,13 +4,13 @@ import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
+import sun.net.SocksProxy;
 
+import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Socket;
-
-import javax.net.ssl.SSLContext;
 
 
 public class SocksSSLConnectionSocketFactory extends SSLConnectionSocketFactory {
@@ -20,9 +20,10 @@ public class SocksSSLConnectionSocketFactory extends SSLConnectionSocketFactory 
     }
 
     @Override
-    public Socket createSocket(final HttpContext context) {
+    public Socket createSocket(final HttpContext context) throws IOException {
         InetSocketAddress socksaddr = (InetSocketAddress) context.getAttribute("socketAddress");
-        Proxy proxy = new Proxy(Proxy.Type.SOCKS, socksaddr);
+        int socksVersion = (Integer) context.getAttribute("socksVersion");
+        Proxy proxy = SocksProxy.create(socksaddr, socksVersion);
         return new Socket(proxy);
     }
 

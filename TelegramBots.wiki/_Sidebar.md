@@ -9,7 +9,6 @@
     * [[Hello Ability]]
     * [[Using Replies]]
     * [[Database Handling]]
-    * [[Ability Extensions]]
     * [[Bot Testing]]
     * [[Bot Recovery]]
     * [[Advanced]]

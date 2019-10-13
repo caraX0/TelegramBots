@@ -11,8 +11,6 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.JSONException;
 import org.telegram.telegrambots.meta.ApiConstants;
 import org.telegram.telegrambots.meta.api.methods.updates.GetUpdates;
@@ -21,6 +19,7 @@ import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.facilities.TelegramHttpClientBuilder;
 import org.telegram.telegrambots.meta.generics.*;
+import org.telegram.telegrambots.meta.logging.BotLogger;
 
 import java.io.IOException;
 import java.io.InvalidObjectException;
@@ -40,7 +39,7 @@ import static org.telegram.telegrambots.Constants.SOCKET_TIMEOUT;
  * Thread to request updates with active wait
  */
 public class DefaultBotSession implements BotSession {
-    private static final Logger log = LogManager.getLogger(DefaultBotSession.class);
+    private static final String LOGTAG = "BOTSESSION";
 
     private AtomicBoolean running = new AtomicBoolean(false);
 
@@ -171,7 +170,7 @@ public class DefaultBotSession implements BotSession {
                 try {
                     httpclient.close();
                 } catch (IOException e) {
-                    log.warn(e.getLocalizedMessage(), e);
+                    BotLogger.warn(LOGTAG, e);
                 }
             }
             super.interrupt();
@@ -204,10 +203,10 @@ public class DefaultBotSession implements BotSession {
                             if (!running.get()) {
                                 receivedUpdates.clear();
                             }
-                            log.debug(e.getLocalizedMessage(), e);
+                            BotLogger.debug(LOGTAG, e);
                             interrupt();
                         } catch (Exception global) {
-                            log.fatal(global.getLocalizedMessage(), global);
+                            BotLogger.severe(LOGTAG, global);
                             try {
                                 synchronized (lock) {
                                     lock.wait(exponentialBackOff.nextBackOffMillis());
@@ -216,14 +215,14 @@ public class DefaultBotSession implements BotSession {
                                 if (!running.get()) {
                                     receivedUpdates.clear();
                                 }
-                                log.debug(e.getLocalizedMessage(), e);
+                                BotLogger.debug(LOGTAG, e);
                                 interrupt();
                             }
                         }
                     }
                 }
             }
-            log.debug("Reader thread has being closed");
+            BotLogger.debug(LOGTAG, "Reader thread has being closed");
         }
 
         private List<Update> getUpdatesFromServer() throws IOException {
@@ -249,7 +248,7 @@ public class DefaultBotSession implements BotSession {
                 String responseContent = EntityUtils.toString(buf, StandardCharsets.UTF_8);
 
                 if (response.getStatusLine().getStatusCode() >= 500) {
-                    log.warn(responseContent);
+                    BotLogger.warn(LOGTAG, responseContent);
                     synchronized (lock) {
                         lock.wait(500);
                     }
@@ -259,15 +258,15 @@ public class DefaultBotSession implements BotSession {
                         exponentialBackOff.reset();
                         return updates;
                     } catch (JSONException e) {
-                        log.error("Error deserializing update: " + responseContent, e);
+                        BotLogger.severe(responseContent, LOGTAG, e);
                     }
                 }
             } catch (SocketException | InvalidObjectException | TelegramApiRequestException e) {
-                log.fatal(e.getLocalizedMessage(), e);
+                BotLogger.severe(LOGTAG, e);
             } catch (SocketTimeoutException e) {
-                log.info(e.getLocalizedMessage(), e);
+                BotLogger.fine(LOGTAG, e);
             } catch (InterruptedException e) {
-                log.info(e.getLocalizedMessage(), e);
+                BotLogger.fine(LOGTAG, e);
                 interrupt();
             }
             return Collections.emptyList();
@@ -306,13 +305,13 @@ public class DefaultBotSession implements BotSession {
                     }
                     callback.onUpdatesReceived(updates);
                 } catch (InterruptedException e) {
-                    log.debug(e.getLocalizedMessage(), e);
+                    BotLogger.debug(LOGTAG, e);
                     interrupt();
                 } catch (Exception e) {
-                    log.fatal(e.getLocalizedMessage(), e);
+                    BotLogger.severe(LOGTAG, e);
                 }
             }
-            log.debug("Handler thread has being closed");
+            BotLogger.debug(LOGTAG, "Handler thread has being closed");
         }
     }
 }

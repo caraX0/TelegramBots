@@ -1,47 +1,46 @@
 package org.telegram.telegrambots.meta.test;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Assert;
+import org.junit.Test;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.test.base.TestBase;
-
-import static org.junit.jupiter.api.Assertions.fail;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
 /**
  * @author Ruben Bermudez
  * @version 1.0
  */
-class TestTelegramApi extends TestBase {
+public class TestTelegramApi extends TestBase {
 
     @Test
-    void TestTelegramApiMustBeInitializableForLongPolling() {
+    public void TestTelegramApiMustBeInitializableForLongPolling() {
         new TelegramBotsApi();
     }
 
     @Test
-    void TestTelegramApiMustBeInitializableForWebhookWithoutSecureSupport() {
+    public void TestTelegramApiMustBeInitializableForWebhookWithoutSecureSupport() {
         try {
             new TelegramBotsApi("externalUrl", "internalUrl");
         } catch (TelegramApiRequestException e) {
-            fail();
+            Assert.fail();
         }
     }
 
     @Test
-    void TestTelegramApiMustBeInitializableForWebhook() {
+    public void TestTelegramApiMustBeInitializableForWebhook() {
         try {
             new TelegramBotsApi("keyStore", "keyStorePassword", "externalUrl", "internalUrl");
         } catch (TelegramApiRequestException e) {
-            fail();
+            Assert.fail();
         }
     }
 
     @Test
-    void TestTelegramApiMustBeInitializableForWebhookWithSelfSignedCertificate() {
+    public void TestTelegramApiMustBeInitializableForWebhookWithSelfSignedCertificate() {
         try {
             new TelegramBotsApi("keyStore", "keyStorePassword", "externalUrl", "internalUrl", "selfSignedPath");
         } catch (TelegramApiRequestException e) {
-            fail();
+            Assert.fail();
         }
     }
 }
