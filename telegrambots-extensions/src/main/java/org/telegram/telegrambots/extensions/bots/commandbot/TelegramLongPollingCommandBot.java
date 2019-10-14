@@ -28,22 +28,10 @@ public abstract class TelegramLongPollingCommandBot extends TelegramLongPollingB
      * Creates a TelegramLongPollingCommandBot using default options
      * Use ICommandRegistry's methods on this bot to register commands
      *
-     */
-    public TelegramLongPollingCommandBot() {
-        this(ApiContext.getInstance(DefaultBotOptions.class));
-    }
-
-    /**
-     * Creates a TelegramLongPollingCommandBot using default options
-     * Use ICommandRegistry's methods on this bot to register commands
-     *
      * @param botUsername Username of the bot
-     * @deprecated Overwrite {@link #getBotUsername() getBotUsername} instead
      */
-    @Deprecated
-    public TelegramLongPollingCommandBot(String botUsername){
-        this();
-        this.botUsername = botUsername;
+    public TelegramLongPollingCommandBot(String botUsername) {
+        this(ApiContext.getInstance(DefaultBotOptions.class), botUsername);
     }
 
     /**
@@ -52,9 +40,10 @@ public abstract class TelegramLongPollingCommandBot extends TelegramLongPollingB
      * Use ICommandRegistry's methods on this bot to register commands
      *
      * @param options     Bot options
+     * @param botUsername Username of the bot
      */
-    public TelegramLongPollingCommandBot(DefaultBotOptions options) {
-        this(options, true);
+    public TelegramLongPollingCommandBot(DefaultBotOptions options, String botUsername) {
+        this(options, true, botUsername);
     }
 
     /**
@@ -64,10 +53,12 @@ public abstract class TelegramLongPollingCommandBot extends TelegramLongPollingB
      * @param options                   Bot options
      * @param allowCommandsWithUsername true to allow commands with parameters (default),
      *                                  false otherwise
+     * @param botUsername               bot username of this bot
      */
-    public TelegramLongPollingCommandBot(DefaultBotOptions options, boolean allowCommandsWithUsername) {
+    public TelegramLongPollingCommandBot(DefaultBotOptions options, boolean allowCommandsWithUsername, String botUsername) {
         super(options);
-        this.commandRegistry = new CommandRegistry(allowCommandsWithUsername, this.getBotUsername());
+        this.botUsername = botUsername;
+        this.commandRegistry = new CommandRegistry(allowCommandsWithUsername, botUsername);
     }
 
     @Override
@@ -152,9 +143,9 @@ public abstract class TelegramLongPollingCommandBot extends TelegramLongPollingB
      * @return Bot username
      */
     @Override
-    public String getBotUsername(){
-        return this.botUsername;
-    };
+    public final String getBotUsername() {
+        return botUsername;
+    }
 
     /**
      * Process all updates, that are not commands.
