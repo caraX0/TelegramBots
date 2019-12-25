@@ -34,14 +34,4 @@ public class CallbackGame implements BotApiObject {
     public String toString() {
         return "CallbackGame{}";
     }
-
-    @Override
-    public boolean equals(Object o) {
-        return o == this || o instanceof CallbackGame;
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }
