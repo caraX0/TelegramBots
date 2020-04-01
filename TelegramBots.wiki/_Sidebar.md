@@ -4,7 +4,6 @@
     * [[Using HTTP Proxy]]
     * [[FAQ]]
     * [[Handling Bot Tokens]]
-    * [[Understanding the Library]]
 * AbilityBot
     * [[Simple Example]]
     * [[Hello Ability]]
