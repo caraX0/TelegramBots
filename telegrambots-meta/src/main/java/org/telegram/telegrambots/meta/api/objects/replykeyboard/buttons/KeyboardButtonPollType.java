@@ -9,7 +9,7 @@ import java.util.Objects;
 
 /**
  * @author Ruben Bermudez
- * @version 4.7
+ * @version 4.6
  *
  * This object represents type of a poll, which is allowed to be created and sent when the corresponding button is pressed.
  */
