@@ -9,10 +9,8 @@ The barebone toggle is used to **turn off** all the default abilities that come 
 import org.telegram.abilitybots.api.toggle.BareboneToggle;
 
 public class YourAwesomeBot extends AbilityBot {
-
-  private static final BareboneToggle toggle = new BareboneToggle();
-
   public YourAwesomeBot(String token, String username) {
+    BareboneToggle toggle = new BareboneToggle();
     super(token, username, toggle);
   }
   
@@ -27,12 +25,11 @@ The custom toggle allows you to customize or turn off the names of the abilities
 import org.telegram.abilitybots.api.toggle.CustomToggle;
 
 public class YourAwesomeBot extends AbilityBot {
- 
-  private static final CustomToggle toggle = new CustomToggle()
+  public YourAwesomeBot(String token, String username) {
+    CustomToggle toggle = new CustomToggle()
       .turnOff("ban")
       .toggle("promote", "upgrade");
-
-  public YourAwesomeBot(String token, String username) {
+    
     super(token, username, toggle);
   }
   
