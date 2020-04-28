@@ -35,11 +35,12 @@ hs_err_pid*
 .idea/
 copyright/
 *.iml
-*.ipr
-*.iws
 .classpath
 .project
 .settings/
 
 #File System specific files
-.DS_Store
+.DS_STORE
+
+# Default ignored files
+/Bots.iws
