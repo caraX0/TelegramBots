@@ -42,14 +42,13 @@ public final class Ability {
   private final Locality locality;
   private final Privacy privacy;
   private final int argNum;
-  private final boolean statsEnabled;
   private final Consumer<MessageContext> action;
   private final Consumer<MessageContext> postAction;
   private final List<Reply> replies;
   private final List<Predicate<Update>> flags;
 
   @SafeVarargs
-  private Ability(String name, String info, Locality locality, Privacy privacy, int argNum, boolean statsEnabled, Consumer<MessageContext> action, Consumer<MessageContext> postAction, List<Reply> replies, Predicate<Update>... flags) {
+  private Ability(String name, String info, Locality locality, Privacy privacy, int argNum, Consumer<MessageContext> action, Consumer<MessageContext> postAction, List<Reply> replies, Predicate<Update>... flags) {
     checkArgument(!isEmpty(name), "Method name cannot be empty");
     checkArgument(!containsWhitespace(name), "Method name cannot contain spaces");
     checkArgument(isAlphanumeric(name), "Method name can only be alpha-numeric", name);
@@ -71,7 +70,6 @@ public final class Ability {
 
     this.postAction = postAction;
     this.replies = replies;
-    this.statsEnabled = statsEnabled;
   }
 
   public static AbilityBuilder builder() {
@@ -96,10 +94,6 @@ public final class Ability {
 
   public int tokens() {
     return argNum;
-  }
-
-  public boolean statsEnabled() {
-    return statsEnabled;
   }
 
   public Consumer<MessageContext> action() {
@@ -153,14 +147,12 @@ public final class Ability {
     private Privacy privacy;
     private Locality locality;
     private int argNum;
-    private boolean statsEnabled;
     private Consumer<MessageContext> action;
     private Consumer<MessageContext> postAction;
     private List<Reply> replies;
     private Predicate<Update>[] flags;
 
     private AbilityBuilder() {
-      statsEnabled = false;
       replies = newArrayList();
     }
 
@@ -194,11 +186,6 @@ public final class Ability {
       return this;
     }
 
-    public AbilityBuilder enableStats() {
-      statsEnabled = true;
-      return this;
-    }
-
     public AbilityBuilder privacy(Privacy privacy) {
       this.privacy = privacy;
       return this;
@@ -212,11 +199,6 @@ public final class Ability {
     @SafeVarargs
     public final AbilityBuilder reply(Consumer<Update> action, Predicate<Update>... conditions) {
       replies.add(Reply.of(action, conditions));
-      return this;
-    }
-
-    public final AbilityBuilder reply(Reply reply) {
-      replies.add(reply);
       return this;
     }
 
@@ -234,7 +216,7 @@ public final class Ability {
     }
 
     public Ability build() {
-      return new Ability(name, info, locality, privacy, argNum, statsEnabled, action, postAction, replies, flags);
+      return new Ability(name, info, locality, privacy, argNum, action, postAction, replies, flags);
     }
   }
 }
