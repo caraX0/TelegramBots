@@ -27,7 +27,6 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -38,6 +37,7 @@ import static com.google.common.collect.Sets.difference;
 import static java.lang.String.format;
 import static java.time.ZonedDateTime.now;
 import static java.util.Arrays.stream;
+import static java.util.Objects.isNull;
 import static java.util.Optional.ofNullable;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static java.util.regex.Pattern.compile;
@@ -403,8 +403,12 @@ public abstract class BaseAbilityBot extends DefaultAbsSender implements Ability
     }
 
     boolean checkBlacklist(Update update) {
-        Integer id = AbilityUtils.getUser(update).getId();
+        User user = getUser(update);
+        if (isNull(user)) {
+            return true;
+        }
 
+        int id = user.getId();
         return id == creatorId() || !blacklist().contains(id);
     }
 
@@ -558,23 +562,13 @@ public abstract class BaseAbilityBot extends DefaultAbsSender implements Ability
 
     boolean filterReply(Update update) {
         return replies.stream()
-                .filter(reply -> runSilently(() -> reply.isOkFor(update), reply.name()))
-                .map(reply -> runSilently(() -> {
+                .filter(reply -> reply.isOkFor(update))
+                .map(reply -> {
                     reply.actOn(update);
                     updateReplyStats(reply);
                     return false;
-                }, reply.name()))
+                })
                 .reduce(true, Boolean::logicalAnd);
-    }
-
-    boolean runSilently(Callable<Boolean> callable, String name) {
-        try {
-            return callable.call();
-        } catch(Exception ex) {
-            log.error(format("Reply [%s] failed to check for conditions. " +
-                "Make sure you're safeguarding against all possible updates.", name));
-        }
-        return false;
     }
 
     boolean checkMessageFlags(Trio<Update, Ability, String[]> trio) {

@@ -146,8 +146,10 @@ public class ReplyFlowTest {
 
   @Test
   void replyFlowsPertainNames() {
+    Update update1 = mockFullUpdate(bot, USER, "one");
+    long chatId = getChatId(update1);
     Set<String> replyNames = bot.replies().stream().map(Reply::name).collect(Collectors.toSet());
-    assertTrue(replyNames.containsAll(newHashSet("FIRST", "SECOND")));
+    replyNames.containsAll(newHashSet("FIRST", "SECOND"));
   }
 
   public static class ReplyFlowBot extends AbilityBot {
@@ -179,16 +181,6 @@ public class ReplyFlowTest {
           .next(leftflow)
           .next(saidRight)
           .build();
-    }
-
-    public Reply errantReply() {
-      return Reply.of(
-          upd -> {
-            throw new RuntimeException("Throwing an exception inside the update consumer");
-          },
-          upd -> {
-            throw new RuntimeException("Throwing an exception inside the reply conditions (flags)");
-          });
     }
 
     public Ability replyFlowsWithAbility() {
