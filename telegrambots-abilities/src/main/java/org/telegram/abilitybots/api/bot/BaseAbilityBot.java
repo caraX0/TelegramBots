@@ -3,6 +3,7 @@ package org.telegram.abilitybots.api.bot;
 import com.google.common.collect.*;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.abilitybots.api.db.DBContext;
@@ -129,35 +130,35 @@ public abstract class BaseAbilityBot extends DefaultAbsSender implements Ability
     /**
      * @return the map of <ID,User>
      */
-    public Map<Integer, User> users() {
+    protected Map<Integer, User> users() {
         return db.getMap(USERS);
     }
 
     /**
      * @return the map of <Username,ID>
      */
-    public Map<String, Integer> userIds() {
+    protected Map<String, Integer> userIds() {
         return db.getMap(USER_ID);
     }
 
     /**
      * @return a blacklist containing all the IDs of the banned users
      */
-    public Set<Integer> blacklist() {
+    protected Set<Integer> blacklist() {
         return db.getSet(BLACKLIST);
     }
 
     /**
      * @return an admin set of all the IDs of bot administrators
      */
-    public Set<Integer> admins() {
+    protected Set<Integer> admins() {
         return db.getSet(ADMINS);
     }
 
     /**
      * @return a mapping of ability and reply names to their corresponding statistics
      */
-    public Map<String, Stats> stats() {
+    protected Map<String, Stats> stats() {
         return stats;
     }
 
@@ -220,32 +221,6 @@ public abstract class BaseAbilityBot extends DefaultAbsSender implements Ability
         return botUsername;
     }
 
-    public Privacy getPrivacy(Update update, int id) {
-        return isCreator(id) ?
-            CREATOR : isAdmin(id) ?
-            ADMIN : (isGroupUpdate(update) || isSuperGroupUpdate(update)) && isGroupAdmin(update, id) ?
-            GROUP_ADMIN : PUBLIC;
-    }
-
-    public boolean isGroupAdmin(Update update, int id) {
-        return isGroupAdmin(getChatId(update), id);
-    }
-
-    public boolean isGroupAdmin(long chatId, int id) {
-        GetChatAdministrators admins = new GetChatAdministrators().setChatId(chatId);
-        return silent.execute(admins)
-            .orElse(new ArrayList<>()).stream()
-            .anyMatch(member -> member.getUser().getId() == id);
-    }
-
-    public boolean isCreator(int id) {
-        return id == creatorId();
-    }
-
-    public boolean isAdmin(Integer id) {
-        return admins().contains(id);
-    }
-
     /**
      * Test the update against the provided global flags. The default implementation is a passthrough to all updates.
      * <p>
@@ -256,6 +231,18 @@ public abstract class BaseAbilityBot extends DefaultAbsSender implements Ability
      */
     protected boolean checkGlobalFlags(Update update) {
         return true;
+    }
+
+    protected String getCommandPrefix() {
+        return "/";
+    }
+
+    protected String getCommandRegexSplit() {
+        return " ";
+    }
+
+    protected boolean allowNoSpaceText() {
+        return false;
     }
 
     /**
@@ -484,6 +471,30 @@ public abstract class BaseAbilityBot extends DefaultAbsSender implements Ability
         return isOk;
     }
 
+    @NotNull
+    Privacy getPrivacy(Update update, int id) {
+        return isCreator(id) ?
+                CREATOR : isAdmin(id) ?
+                ADMIN : (isGroupUpdate(update) || isSuperGroupUpdate(update)) && isGroupAdmin(update, id) ?
+                GROUP_ADMIN : PUBLIC;
+    }
+
+    private boolean isGroupAdmin(Update update, int id) {
+        GetChatAdministrators admins = new GetChatAdministrators().setChatId(getChatId(update));
+
+        return silent.execute(admins)
+                .orElse(new ArrayList<>()).stream()
+                .anyMatch(member -> member.getUser().getId() == id);
+    }
+
+    private boolean isCreator(int id) {
+        return id == creatorId();
+    }
+
+    private boolean isAdmin(Integer id) {
+        return admins().contains(id);
+    }
+
     boolean validateAbility(Trio<Update, Ability, String[]> trio) {
         return trio.b() != null;
     }
@@ -495,17 +506,23 @@ public abstract class BaseAbilityBot extends DefaultAbsSender implements Ability
         if (!update.hasMessage() || !msg.hasText())
             return Trio.of(update, abilities.get(DEFAULT), new String[]{});
 
-        String[] tokens = msg.getText().split(" ");
-
-        if (tokens[0].startsWith("/")) {
-            String abilityToken = stripBotUsername(tokens[0].substring(1)).toLowerCase();
-            Ability ability = abilities.get(abilityToken);
-            tokens = Arrays.copyOfRange(tokens, 1, tokens.length);
-            return Trio.of(update, ability, tokens);
+        Ability ability;
+        String[] tokens = msg.getText().split(getCommandRegexSplit());
+        if (allowNoSpaceText()) {
+            String abName = abilities.keySet().stream()
+                .filter(name -> msg.getText().startsWith(format("%s%s", getCommandPrefix(), name)))
+                .findFirst().orElse(DEFAULT);
+            ability = abilities.get(abName);
         } else {
-            Ability ability = abilities.get(DEFAULT);
-            return Trio.of(update, ability, tokens);
+            if (tokens[0].startsWith(getCommandPrefix())) {
+                String abilityToken = stripBotUsername(tokens[0].substring(1)).toLowerCase();
+                ability = abilities.get(abilityToken);
+                tokens = Arrays.copyOfRange(tokens, 1, tokens.length);
+            } else {
+                ability = abilities.get(DEFAULT);
+            }
         }
+        return Trio.of(update, ability, tokens);
     }
 
     private String stripBotUsername(String token) {
