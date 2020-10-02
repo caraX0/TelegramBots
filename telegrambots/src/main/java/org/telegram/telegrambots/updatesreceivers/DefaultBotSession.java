@@ -236,8 +236,8 @@ public class DefaultBotSession implements BotSession {
 
         private List<Update> getUpdatesFromServer() throws IOException {
             GetUpdates request = new GetUpdates()
-                    .setLimit(options.getGetUpdatesLimit())
-                    .setTimeout(options.getGetUpdatesTimeout())
+                    .setLimit(100)
+                    .setTimeout(ApiConstants.GETUPDATES_TIMEOUT)
                     .setOffset(lastReceivedUpdate + 1);
 
             if (options.getAllowedUpdates() != null) {
