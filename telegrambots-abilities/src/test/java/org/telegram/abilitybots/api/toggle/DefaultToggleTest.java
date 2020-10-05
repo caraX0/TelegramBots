@@ -3,6 +3,7 @@ package org.telegram.abilitybots.api.toggle;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.telegram.abilitybots.api.bot.DefaultAbilities;
 import org.telegram.abilitybots.api.bot.DefaultBot;
 import org.telegram.abilitybots.api.db.DBContext;
 import org.telegram.abilitybots.api.objects.Ability;
@@ -17,53 +18,52 @@ import static org.telegram.abilitybots.api.bot.DefaultAbilities.*;
 import static org.telegram.abilitybots.api.db.MapDBContext.offlineInstance;
 
 class DefaultToggleTest {
-    private DBContext db;
-    private AbilityToggle toggle;
-    private DefaultBot defaultBot;
+  private DBContext db;
+  private AbilityToggle toggle;
+  private DefaultBot defaultBot;
+  private DefaultAbilities defaultAbs;
 
-    @BeforeEach
-    void setUp() {
-        db = offlineInstance("db");
-    }
+  @BeforeEach
+  void setUp() {
+    db = offlineInstance("db");
+    defaultAbs = new DefaultAbilities(defaultBot);
+  }
 
-    @AfterEach
-    void tearDown() throws IOException {
-        db.clear();
-        db.close();
-    }
+  @AfterEach
+  void tearDown() throws IOException {
+    db.clear();
+    db.close();
+  }
 
-    @Test
-    public void claimsEveryAbilityIsOn() {
-        Ability random = DefaultBot.getDefaultBuilder()
-            .name("randomsomethingrandom").build();
-        toggle = new DefaultToggle();
-        defaultBot = new DefaultBot(EMPTY, EMPTY, db, toggle);
-        defaultBot.onRegister();
+  @Test
+  public void claimsEveryAbilityIsOn() {
+    Ability random = DefaultBot.getDefaultBuilder()
+        .name("randomsomethingrandom").build();
+    toggle = new DefaultToggle();
+    defaultBot = new DefaultBot(EMPTY, EMPTY, db, toggle);
 
-        assertFalse(toggle.isOff(random));
-    }
+    assertFalse(toggle.isOff(random));
+  }
 
-    @Test
-    public void passedSameAbilityRefOnProcess() {
-        Ability random = DefaultBot.getDefaultBuilder()
-            .name("randomsomethingrandom").build();
-        toggle = new DefaultToggle();
-        defaultBot = new DefaultBot(EMPTY, EMPTY, db, toggle);
-        defaultBot.onRegister();
+  @Test
+  public void passedSameAbilityRefOnProcess() {
+    Ability random = DefaultBot.getDefaultBuilder()
+        .name("randomsomethingrandom").build();
+    toggle = new DefaultToggle();
+    defaultBot = new DefaultBot(EMPTY, EMPTY, db, toggle);
 
-        assertSame(random, toggle.processAbility(random), "Toggle returned a different ability");
-    }
+    assertSame(random, toggle.processAbility(random), "Toggle returned a different ability");
+  }
 
-    @Test
-    public void allAbilitiesAreRegistered() {
-        toggle = new DefaultToggle();
-        defaultBot = new DefaultBot(EMPTY, EMPTY, db, toggle);
-        defaultBot.onRegister();
-        Set<String> defaultNames = newHashSet(
-            CLAIM, BAN, UNBAN,
-            PROMOTE, DEMOTE, RECOVER,
-            BACKUP, REPORT, COMMANDS);
+  @Test
+  public void allAbilitiesAreRegistered() {
+    toggle = new DefaultToggle();
+    defaultBot = new DefaultBot(EMPTY, EMPTY, db, toggle);
+    Set<String> defaultNames = newHashSet(
+        CLAIM, BAN, UNBAN,
+        PROMOTE, DEMOTE, RECOVER,
+        BACKUP, REPORT, COMMANDS);
 
-        assertTrue(defaultBot.abilities().keySet().containsAll(defaultNames), "Toggle returned a different ability");
-    }
+    assertTrue(defaultBot.abilities().keySet().containsAll(defaultNames), "Toggle returned a different ability");
+  }
 }

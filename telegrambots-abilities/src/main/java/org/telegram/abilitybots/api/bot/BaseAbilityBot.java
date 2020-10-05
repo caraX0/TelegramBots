@@ -106,6 +106,7 @@ public abstract class BaseAbilityBot extends DefaultAbsSender implements Ability
     private final String botUsername;
 
     // Ability registry
+    protected final List<AbilityExtension> extensions = new ArrayList<>();
     private Map<String, Ability> abilities;
     private Map<String, Stats> stats;
 
@@ -123,9 +124,7 @@ public abstract class BaseAbilityBot extends DefaultAbsSender implements Ability
         this.toggle = toggle;
         this.sender = new DefaultSender(this);
         silent = new SilentSender(sender);
-    }
 
-    public void onRegister() {
         registerAbilities();
         initStats();
     }
@@ -282,10 +281,10 @@ public abstract class BaseAbilityBot extends DefaultAbsSender implements Ability
     private void registerAbilities() {
         try {
             // Collect all classes that implement AbilityExtension declared in the bot
-            List<AbilityExtension> extensions = stream(getClass().getMethods())
+            extensions.addAll(stream(getClass().getMethods())
                     .filter(checkReturnType(AbilityExtension.class))
                     .map(returnExtension(this))
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList()));
 
             // Add the bot itself as it is an AbilityExtension
             extensions.add(this);

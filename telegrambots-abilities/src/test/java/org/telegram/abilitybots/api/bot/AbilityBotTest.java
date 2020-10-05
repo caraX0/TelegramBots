@@ -71,7 +71,6 @@ public class AbilityBotTest {
   void setUp() {
     db = offlineInstance("db");
     bot = new DefaultBot(EMPTY, EMPTY, db);
-    bot.onRegister();
     defaultAbs = new DefaultAbilities(bot);
 
     sender = mock(MessageSender.class);

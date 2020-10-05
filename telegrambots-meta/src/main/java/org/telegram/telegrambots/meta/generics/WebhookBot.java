@@ -10,12 +10,24 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
  * @brief Callback to handle updates.
  * @date 20 of June of 2015
  */
-public interface WebhookBot extends TelegramBot {
+public interface WebhookBot {
     /**
      * This method is called when receiving updates via webhook
      * @param update Update received
      */
     BotApiMethod onWebhookUpdateReceived(Update update);
+
+    /**
+     * Gets bot username of this bot
+     * @return Bot username
+     */
+    String getBotUsername();
+
+    /**
+     * Gets bot token to access Telegram API
+     * @return Bot token
+     */
+    String getBotToken();
 
     /**
      * Execute setWebhook method to set up the url of the webhook
