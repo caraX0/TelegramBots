@@ -123,30 +123,11 @@ public abstract class BaseAbilityBot extends DefaultAbsSender implements Ability
         this.toggle = toggle;
         this.sender = new DefaultSender(this);
         silent = new SilentSender(sender);
+    }
 
+    public void onRegister() {
         registerAbilities();
         initStats();
-    }
-
-    /**
-     * @return the database of this bot
-     */
-    public DBContext db() {
-        return db;
-    }
-
-    /**
-     * @return the message sender for this bot
-     */
-    public MessageSender sender() {
-        return sender;
-    }
-
-    /**
-     * @return the silent sender for this bot
-     */
-    public SilentSender silent() {
-        return silent;
     }
 
     /**
@@ -458,7 +439,7 @@ public abstract class BaseAbilityBot extends DefaultAbsSender implements Ability
         Update update = trio.a();
         User user = AbilityUtils.getUser(update);
 
-        return Pair.of(newContext(update, user, getChatId(update), this, trio.c()), trio.b());
+        return Pair.of(newContext(update, user, getChatId(update), trio.c()), trio.b());
     }
 
     boolean checkBlacklist(Update update) {
