@@ -33,7 +33,6 @@ class AbilityBotI18nTest {
   void setUp() {
     db = offlineInstance("db");
     bot = new NoPublicCommandsBot(EMPTY, EMPTY, db);
-    bot.onRegister();
     defaultAbs = new DefaultAbilities(bot);
 
     sender = mock(MessageSender.class);
