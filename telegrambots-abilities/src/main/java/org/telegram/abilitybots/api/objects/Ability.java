@@ -50,8 +50,9 @@ public final class Ability {
 
   @SafeVarargs
   private Ability(String name, String info, Locality locality, Privacy privacy, int argNum, boolean statsEnabled, Consumer<MessageContext> action, Consumer<MessageContext> postAction, List<Reply> replies, Predicate<Update>... flags) {
-    checkArgument(isValidCommandName(name), "Method name can only contain alpha-numeric characters and underscores," +
-            " cannot be longer than 31 characters, empty or null", name);
+    checkArgument(!isEmpty(name), "Method name cannot be empty");
+    checkArgument(!containsWhitespace(name), "Method name cannot contain spaces");
+    checkArgument(isAlphanumeric(name), "Method name can only be alpha-numeric", name);
     this.name = name;
     this.info = info;
 
