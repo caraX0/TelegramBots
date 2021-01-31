@@ -19,12 +19,6 @@ Usage
     </dependency>
 ```
 
-**Gradle**
-
-```gradle
-    implementation 'org.telegram:telegrambots-chat-session-bot:5.0.1'
-```
-
 Motivation
 ----------
 Implementation of bot dialogs require saving some data about current state of conversation.
