@@ -11,7 +11,8 @@ import org.telegram.telegrambots.meta.test.TelegramBotsHelper;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Ruben Bermudez
@@ -31,14 +32,14 @@ class TestGetUpdates {
     }
 
     @Test
-    void testGetUpdatesMustBeSerializable() throws Exception {
+    void TestGetUpdatesMustBeSerializable() throws Exception {
         String json = mapper.writeValueAsString(getUpdates);
         assertNotNull(json);
         assertEquals("{\"offset\":15,\"limit\":100,\"timeout\":50,\"method\":\"getupdates\"}", json);
     }
 
     @Test
-    void testGetUpdatesMustDeserializeCorrectResponse() throws Exception {
+    void TestGetUpdatesMustDeserializeCorrectResponse() throws Exception {
         ArrayList<Update> result =
                 getUpdates.deserializeResponse(TelegramBotsHelper.GetResponseWithoutError());
         assertNotNull(result);
@@ -46,24 +47,13 @@ class TestGetUpdates {
     }
 
     @Test
-    void testGetUpdatesMustThrowAnExceptionForInCorrectResponse() {
+    void TestGetUpdatesMustThrowAnExceptionForInCorrectResponse() {
         try {
             getUpdates.deserializeResponse(TelegramBotsHelper.GetResponseWithError());
         } catch (TelegramApiRequestException e) {
             assertNotNull(e.getParameters());
             assertEquals(Integer.valueOf(400), e.getErrorCode());
             assertEquals("Error descriptions", e.getApiResponse());
-        }
-    }
-
-    @Test
-    void testGetUpdatesMustThrowAnExceptionForInCorrectResponse409() {
-        try {
-            getUpdates.deserializeResponse(TelegramBotsHelper.getResponseWithError409());
-        } catch (TelegramApiRequestException e) {
-            assertNull(e.getParameters());
-            assertEquals(Integer.valueOf(409), e.getErrorCode());
-            assertEquals("Conflict: terminated by other getUpdates request; make sure that only one bot instance is running", e.getApiResponse());
         }
     }
 }
