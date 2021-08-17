@@ -26,8 +26,6 @@ import org.telegram.telegrambots.meta.api.objects.User;
 @AllArgsConstructor
 @Builder
 public class ChatMemberBanned implements ChatMember {
-    public static final String STATUS = "kicked";
-
     private static final String STATUS_FIELD = "status";
     private static final String USER_FIELD = "user";
     private static final String UNTILDATE_FIELD = "until_date";
@@ -36,7 +34,7 @@ public class ChatMemberBanned implements ChatMember {
      * The member's status in the chat, always “kicked”
      */
     @JsonProperty(STATUS_FIELD)
-    private final String status = STATUS;
+    private final String status = "kicked";
     /**
      * Information about the user
      */
