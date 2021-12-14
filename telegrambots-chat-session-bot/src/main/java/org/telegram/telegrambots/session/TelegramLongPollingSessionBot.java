@@ -27,7 +27,6 @@ public abstract class TelegramLongPollingSessionBot extends TelegramLongPollingB
     }
 
     public TelegramLongPollingSessionBot(ChatIdConverter chatIdConverter, DefaultBotOptions defaultBotOptions){
-        super(defaultBotOptions);
         this.setSessionManager(new DefaultSessionManager());
         this.setChatIdConverter(chatIdConverter);
         AbstractSessionDAO sessionDAO = (AbstractSessionDAO) sessionManager.getSessionDAO();
