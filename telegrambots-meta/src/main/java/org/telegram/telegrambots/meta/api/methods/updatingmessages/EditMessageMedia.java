@@ -11,7 +11,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.Tolerate;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.ApiResponse;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -76,11 +75,6 @@ public class EditMessageMedia extends PartialBotApiMethod<Serializable> {
     @JsonProperty(REPLYMARKUP_FIELD)
     private InlineKeyboardMarkup replyMarkup; ///< Optional. A JSON-serialized object for an inline keyboard.
 
-    @Tolerate
-    public void setChatId(Long chatId) {
-        this.chatId = chatId == null ? null : chatId.toString();
-    }
-
     @Override
     public Serializable deserializeResponse(String answer) throws TelegramApiRequestException {
         try {
@@ -124,20 +118,14 @@ public class EditMessageMedia extends PartialBotApiMethod<Serializable> {
                 throw new TelegramApiValidationException("MessageId parameter must be empty if inlineMessageId is provided", this);
             }
         }
+        if (media == null) {
+            throw new TelegramApiValidationException("Media parameter can't be empty", this);
+        }
 
         media.validate();
 
         if (replyMarkup != null) {
             replyMarkup.validate();
-        }
-    }
-
-    public static class EditMessageMediaBuilder {
-
-        @Tolerate
-        public EditMessageMediaBuilder chatId(Long chatId) {
-            this.chatId = chatId == null ? null : chatId.toString();
-            return this;
         }
     }
 }

@@ -1,6 +1,7 @@
 package org.telegram.telegrambots.meta.api.methods.groupadministration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -10,11 +11,13 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.Tolerate;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.ApiResponse;
 import org.telegram.telegrambots.meta.api.objects.ChatInviteLink;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
+
+import java.io.IOException;
 
 /**
  * @author Ruben Bermudez
@@ -66,10 +69,6 @@ public class CreateChatInviteLink extends BotApiMethod<ChatInviteLink> {
     @JsonProperty(CREATESJOINREQUEST_FIELD)
     private Boolean createsJoinRequest;
 
-    @Tolerate
-    public void setChatId(@NonNull Long chatId) {
-        this.chatId = chatId.toString();
-    }
 
     @Override
     public String getMethod() {
@@ -78,7 +77,17 @@ public class CreateChatInviteLink extends BotApiMethod<ChatInviteLink> {
 
     @Override
     public ChatInviteLink deserializeResponse(String answer) throws TelegramApiRequestException {
-        return deserializeResponse(answer, ChatInviteLink.class);
+        try {
+            ApiResponse<ChatInviteLink> result = OBJECT_MAPPER.readValue(answer,
+                    new TypeReference<ApiResponse<ChatInviteLink>>(){});
+            if (result.getOk()) {
+                return result.getResult();
+            } else {
+                throw new TelegramApiRequestException("Error creating invite link", result);
+            }
+        } catch (IOException e) {
+            throw new TelegramApiRequestException("Unable to deserialize response", e);
+        }
     }
 
     @Override
@@ -94,15 +103,6 @@ public class CreateChatInviteLink extends BotApiMethod<ChatInviteLink> {
         }
         if (memberLimit != null && (memberLimit < 1 || memberLimit > 99999)) {
             throw new TelegramApiValidationException("MemberLimit must be between 1 and 99999", this);
-        }
-    }
-
-    public static class CreateChatInviteLinkBuilder {
-
-        @Tolerate
-        public CreateChatInviteLinkBuilder chatId(@NonNull Long chatId) {
-            this.chatId = chatId.toString();
-            return this;
         }
     }
 }

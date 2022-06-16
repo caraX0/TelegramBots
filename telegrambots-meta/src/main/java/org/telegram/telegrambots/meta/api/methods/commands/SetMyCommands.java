@@ -1,6 +1,7 @@
 package org.telegram.telegrambots.meta.api.methods.commands;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -10,11 +11,14 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.Singular;
 import lombok.ToString;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodBoolean;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.ApiResponse;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScope;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -31,7 +35,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SetMyCommands extends BotApiMethodBoolean {
+public class SetMyCommands extends BotApiMethod<Boolean> {
     public static final String PATH = "setMyCommands";
 
     private static final String COMMANDS_FIELD = "commands";
@@ -67,11 +71,26 @@ public class SetMyCommands extends BotApiMethodBoolean {
     }
 
     @Override
+    public Boolean deserializeResponse(String answer) throws TelegramApiRequestException {
+        try {
+            ApiResponse<Boolean> result = OBJECT_MAPPER.readValue(answer,
+                    new TypeReference<ApiResponse<Boolean>>(){});
+            if (result.getOk()) {
+                return result.getResult();
+            } else {
+                throw new TelegramApiRequestException("Error sending commands", result);
+            }
+        } catch (IOException e) {
+            throw new TelegramApiRequestException("Unable to deserialize response", e);
+        }
+    }
+
+    @Override
     public void validate() throws TelegramApiValidationException {
         if (languageCode != null && languageCode.isEmpty()) {
             throw new TelegramApiValidationException("LanguageCode parameter can't be empty string", this);
         }
-        if (commands.isEmpty()) {
+        if (commands == null || commands.isEmpty()) {
             throw new TelegramApiValidationException("Commands parameter can't be empty", this);
         }
         if (commands.size() > 100) {

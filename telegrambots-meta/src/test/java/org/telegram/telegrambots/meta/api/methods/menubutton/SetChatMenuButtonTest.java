@@ -1,6 +1,7 @@
 package org.telegram.telegrambots.meta.api.methods.menubutton;
 
 import org.junit.jupiter.api.Test;
+import org.telegram.telegrambots.meta.api.objects.menubutton.MenuButton;
 import org.telegram.telegrambots.meta.api.objects.menubutton.MenuButtonCommands;
 import org.telegram.telegrambots.meta.api.objects.menubutton.MenuButtonDefault;
 import org.telegram.telegrambots.meta.api.objects.menubutton.MenuButtonWebApp;
@@ -8,11 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.webapp.WebAppInfo;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Ruben Bermudez
@@ -34,7 +31,7 @@ public class SetChatMenuButtonTest {
     public void testGetChatMenuButtonAsCommands() {
         SetChatMenuButton setChatMenuButton = SetChatMenuButton
                 .builder()
-                .chatId(123456L)
+                .chatId("123456")
                 .menuButton(MenuButtonCommands.builder().build())
                 .build();
         assertEquals("setChatMenuButton", setChatMenuButton.getMethod());

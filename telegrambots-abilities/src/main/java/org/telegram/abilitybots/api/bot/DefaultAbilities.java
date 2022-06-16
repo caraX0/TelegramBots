@@ -224,7 +224,7 @@ public final class DefaultAbilities implements AbilityExtension {
             printStream.print(bot.db.backup());
             bot.sender.sendDocument(SendDocument.builder()
                     .document(new InputFile(backup))
-                    .chatId(ctx.chatId())
+                    .chatId(ctx.chatId().toString())
                     .build()
             );
           } catch (FileNotFoundException e) {

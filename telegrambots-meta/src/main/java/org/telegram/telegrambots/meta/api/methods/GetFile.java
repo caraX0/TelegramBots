@@ -1,6 +1,7 @@
 package org.telegram.telegrambots.meta.api.methods;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -9,8 +10,12 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
+import org.telegram.telegrambots.meta.api.objects.ApiResponse;
 import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
+
+import java.io.IOException;
 
 /**
  * @author Ruben Bermudez
@@ -40,12 +45,29 @@ public class GetFile extends BotApiMethod<File> {
     private String fileId; ///< File identifier to get info about
 
     @Override
+    public void validate() throws TelegramApiValidationException {
+        if (fileId == null) {
+            throw new TelegramApiValidationException("FileId can't be empty", this);
+        }
+    }
+
+    @Override
     public String getMethod() {
         return PATH;
     }
 
     @Override
     public File deserializeResponse(String answer) throws TelegramApiRequestException {
-        return deserializeResponse(answer, File.class);
+        try {
+            ApiResponse<File> result = OBJECT_MAPPER.readValue(answer,
+                    new TypeReference<ApiResponse<File>>(){});
+            if (result.getOk()) {
+                return result.getResult();
+            } else {
+                throw new TelegramApiRequestException("Error getting file", result);
+            }
+        } catch (IOException e) {
+            throw new TelegramApiRequestException("Unable to deserialize response", e);
+        }
     }
 }

@@ -1,6 +1,7 @@
 package org.telegram.telegrambots.meta.api.methods;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -10,8 +11,11 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodBoolean;
+import org.telegram.telegrambots.meta.api.objects.ApiResponse;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
+
+import java.io.IOException;
 
 /**
  * @author Ruben Bermudez
@@ -32,7 +36,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AnswerPreCheckoutQuery extends BotApiMethodBoolean {
+public class AnswerPreCheckoutQuery extends BotApiMethod<Boolean> {
     public static final String PATH = "answerPreCheckoutQuery";
 
     private static final String PRE_CHECKOUT_QUERY_ID_FIELD = "pre_checkout_query_id";
@@ -50,8 +54,11 @@ public class AnswerPreCheckoutQuery extends BotApiMethodBoolean {
 
     @Override
     public void validate() throws TelegramApiValidationException {
-        if (preCheckoutQueryId.isEmpty()) {
+        if (preCheckoutQueryId == null || preCheckoutQueryId.isEmpty()) {
             throw new TelegramApiValidationException("PreCheckoutQueryId can't be empty", this);
+        }
+        if (ok == null) {
+            throw new TelegramApiValidationException("Ok can't be null", this);
         }
         if (!ok) {
             if (errorMessage == null || errorMessage.isEmpty()) {
@@ -63,5 +70,20 @@ public class AnswerPreCheckoutQuery extends BotApiMethodBoolean {
     @Override
     public String getMethod() {
         return PATH;
+    }
+
+    @Override
+    public Boolean deserializeResponse(String answer) throws TelegramApiRequestException {
+        try {
+            ApiResponse<Boolean> result = OBJECT_MAPPER.readValue(answer,
+                    new TypeReference<ApiResponse<Boolean>>(){});
+            if (result.getOk()) {
+                return result.getResult();
+            } else {
+                throw new TelegramApiRequestException("Error answering pre-checkout query", result);
+            }
+        } catch (IOException e) {
+            throw new TelegramApiRequestException("Unable to deserialize response", e);
+        }
     }
 }

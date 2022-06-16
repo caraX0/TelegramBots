@@ -1,6 +1,7 @@
 package org.telegram.telegrambots.meta.api.methods.send;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -10,10 +11,14 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.Tolerate;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodMessage;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.ApiResponse;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
+
+import java.io.IOException;
 
 /**
  * @author Ruben Bermudez
@@ -28,7 +33,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SendLocation extends BotApiMethodMessage {
+public class SendLocation extends BotApiMethod<Message> {
     public static final String PATH = "sendlocation";
 
     private static final String CHATID_FIELD = "chat_id";
@@ -86,11 +91,6 @@ public class SendLocation extends BotApiMethodMessage {
     @JsonProperty(PROTECTCONTENT_FIELD)
     private Boolean protectContent; ///< Optional. Protects the contents of sent messages from forwarding and saving
 
-    @Tolerate
-    public void setChatId(@NonNull Long chatId) {
-        this.chatId = chatId.toString();
-    }
-
     public void enableNotification() {
         this.disableNotification = false;
     }
@@ -105,9 +105,30 @@ public class SendLocation extends BotApiMethodMessage {
     }
 
     @Override
+    public Message deserializeResponse(String answer) throws TelegramApiRequestException {
+        try {
+            ApiResponse<Message> result = OBJECT_MAPPER.readValue(answer,
+                    new TypeReference<ApiResponse<Message>>(){});
+            if (result.getOk()) {
+                return result.getResult();
+            } else {
+                throw new TelegramApiRequestException("Error sending location", result);
+            }
+        } catch (IOException e) {
+            throw new TelegramApiRequestException("Unable to deserialize response", e);
+        }
+    }
+
+    @Override
     public void validate() throws TelegramApiValidationException {
-        if (chatId.isEmpty()) {
+        if (chatId == null || chatId.isEmpty()) {
             throw new TelegramApiValidationException("ChatId parameter can't be empty", this);
+        }
+        if (latitude == null) {
+            throw new TelegramApiValidationException("Latitude parameter can't be empty", this);
+        }
+        if (longitude == null) {
+            throw new TelegramApiValidationException("Longitude parameter can't be empty", this);
         }
         if (horizontalAccuracy != null && (horizontalAccuracy < 0 || horizontalAccuracy > 1500)) {
             throw new TelegramApiValidationException("Horizontal Accuracy parameter must be between 0 and 1500", this);
@@ -123,15 +144,6 @@ public class SendLocation extends BotApiMethodMessage {
         }
         if (livePeriod != null && (livePeriod < 60 || livePeriod > 86400)) {
             throw new TelegramApiValidationException("Live period parameter must be between 60 and 86400", this);
-        }
-    }
-
-    public static class SendLocationBuilder {
-
-        @Tolerate
-        public SendLocationBuilder chatId(@NonNull Long chatId) {
-            this.chatId = chatId.toString();
-            return this;
         }
     }
 }

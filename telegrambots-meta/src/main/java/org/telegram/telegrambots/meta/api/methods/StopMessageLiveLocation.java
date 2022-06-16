@@ -9,8 +9,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.Tolerate;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodSerializable;
 import org.telegram.telegrambots.meta.api.objects.ApiResponse;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -34,7 +32,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class StopMessageLiveLocation extends BotApiMethodSerializable {
+public class StopMessageLiveLocation extends BotApiMethod<Serializable> {
     public static final String PATH = "stopMessageLiveLocation";
 
     private static final String CHATID_FIELD = "chat_id";
@@ -60,11 +58,6 @@ public class StopMessageLiveLocation extends BotApiMethodSerializable {
     private String inlineMessageId;
     @JsonProperty(REPLYMARKUP_FIELD)
     private InlineKeyboardMarkup replyMarkup; ///< Optional. A JSON-serialized object for an inline keyboard.
-
-    @Tolerate
-    public void setChatId(Long chatId) {
-        this.chatId = chatId == null ? null : chatId.toString();
-    }
 
     @Override
     public String getMethod() {
@@ -116,15 +109,6 @@ public class StopMessageLiveLocation extends BotApiMethodSerializable {
         }
         if (replyMarkup != null) {
             replyMarkup.validate();
-        }
-    }
-
-    public static class StopMessageLiveLocationBuilder {
-
-        @Tolerate
-        public StopMessageLiveLocationBuilder chatId(Long chatId) {
-            this.chatId = chatId == null ? null : chatId.toString();
-            return this;
         }
     }
 }

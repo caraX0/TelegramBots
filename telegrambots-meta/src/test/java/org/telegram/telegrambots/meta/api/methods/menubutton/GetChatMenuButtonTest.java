@@ -5,11 +5,7 @@ import org.telegram.telegrambots.meta.api.objects.menubutton.MenuButton;
 import org.telegram.telegrambots.meta.api.objects.menubutton.MenuButtonDefault;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Ruben Bermudez
@@ -30,7 +26,7 @@ public class GetChatMenuButtonTest {
     public void testGetChatMenuButtonForChat() {
         GetChatMenuButton getChatMenuButton = GetChatMenuButton
                 .builder()
-                .chatId(123456L)
+                .chatId("123456")
                 .build();
         assertEquals("getChatMenuButton", getChatMenuButton.getMethod());
         assertDoesNotThrow(getChatMenuButton::validate);

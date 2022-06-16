@@ -1,6 +1,7 @@
 package org.telegram.telegrambots.meta.test.apimethods;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.telegram.telegrambots.meta.api.methods.games.SetGameScore;
@@ -25,7 +26,7 @@ class TestSetGameScore {
     @BeforeEach
     void setUp() {
         setGameScore = new SetGameScore();
-        setGameScore.setChatId(12345L);
+        setGameScore.setChatId("12345");
         setGameScore.setDisableEditMessage(true);
         setGameScore.setMessageId(54321);
         setGameScore.setScore(12);
@@ -40,7 +41,7 @@ class TestSetGameScore {
     }
 
     @Test
-    void TestGetUpdatesMustDeserializeCorrectBooleanResponse() throws Exception {
+    void TestGetUpdatesMustDeserializeCorrectResponse() throws Exception {
         Serializable result =
                 setGameScore.deserializeResponse(TelegramBotsHelper.GetSetGameScoreBooleanResponse());
         assertNotNull(result);
@@ -49,7 +50,7 @@ class TestSetGameScore {
     }
 
     @Test
-    void TestGetUpdatesMustDeserializeCorrectMessageResponse() throws Exception {
+    void TestGetUpdatesMustThrowAnExceptionForInCorrectResponse() throws Exception {
         Serializable result = setGameScore.deserializeResponse(TelegramBotsHelper.GetSetGameScoreMessageResponse());
         assertNotNull(result);
         assertTrue(result instanceof Message);

@@ -1,5 +1,6 @@
 package org.telegram.telegrambots.meta.api.methods.send;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -9,13 +10,15 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.Tolerate;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.ApiResponse;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
+
+import java.io.IOException;
 
 /**
  * @author Ruben Bermudez
@@ -52,11 +55,6 @@ public class SendSticker extends PartialBotApiMethod<Message> {
     private Boolean allowSendingWithoutReply; ///< Optional	Pass True, if the message should be sent even if the specified replied-to message is not found
     private Boolean protectContent; ///< Optional. Protects the contents of sent messages from forwarding and saving
 
-    @Tolerate
-    public void setChatId(@NonNull Long chatId) {
-        this.chatId = chatId.toString();
-    }
-
     public Boolean getDisableNotification() {
         return disableNotification;
     }
@@ -71,7 +69,17 @@ public class SendSticker extends PartialBotApiMethod<Message> {
 
     @Override
     public Message deserializeResponse(String answer) throws TelegramApiRequestException {
-        return deserializeResponse(answer, Message.class);
+        try {
+            ApiResponse<Message> result = OBJECT_MAPPER.readValue(answer,
+                    new TypeReference<ApiResponse<Message>>(){});
+            if (result.getOk()) {
+                return result.getResult();
+            } else {
+                throw new TelegramApiRequestException("Error sending sticker", result);
+            }
+        } catch (IOException e) {
+            throw new TelegramApiRequestException("Unable to deserialize response", e);
+        }
     }
 
     @Override
@@ -84,15 +92,6 @@ public class SendSticker extends PartialBotApiMethod<Message> {
 
         if (replyMarkup != null) {
             replyMarkup.validate();
-        }
-    }
-
-    public static class SendStickerBuilder {
-
-        @Tolerate
-        public SendStickerBuilder chatId(@NonNull Long chatId) {
-            this.chatId = chatId.toString();
-            return this;
         }
     }
 }

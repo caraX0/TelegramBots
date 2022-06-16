@@ -1,6 +1,7 @@
 package org.telegram.telegrambots.meta.api.methods.groupadministration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -9,10 +10,12 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.Tolerate;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.ApiResponse;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
+
+import java.io.IOException;
 
 /**
  * @author Ruben Bermudez
@@ -44,11 +47,6 @@ public class ExportChatInviteLink extends BotApiMethod<String> {
     @NonNull
     private String chatId; ///< Unique identifier for the target chat or username of the target channel (in the format @channelusername)
 
-    @Tolerate
-    public void setChatId(@NonNull Long chatId) {
-        this.chatId = chatId.toString();
-    }
-
     @Override
     public String getMethod() {
         return PATH;
@@ -56,22 +54,23 @@ public class ExportChatInviteLink extends BotApiMethod<String> {
 
     @Override
     public String deserializeResponse(String answer) throws TelegramApiRequestException {
-        return deserializeResponse(answer, String.class);
+        try {
+            ApiResponse<String> result = OBJECT_MAPPER.readValue(answer,
+                    new TypeReference<ApiResponse<String>>(){});
+            if (result.getOk()) {
+                return result.getResult();
+            } else {
+                throw new TelegramApiRequestException("Error exporting invite link", result);
+            }
+        } catch (IOException e) {
+            throw new TelegramApiRequestException("Unable to deserialize response", e);
+        }
     }
 
     @Override
     public void validate() throws TelegramApiValidationException {
-        if (chatId.isEmpty()) {
+        if (chatId == null || chatId.isEmpty()) {
             throw new TelegramApiValidationException("ChatId can't be empty", this);
-        }
-    }
-
-    public static class ExportChatInviteLinkBuilder {
-
-        @Tolerate
-        public ExportChatInviteLinkBuilder chatId(@NonNull Long chatId) {
-            this.chatId = chatId.toString();
-            return this;
         }
     }
 }

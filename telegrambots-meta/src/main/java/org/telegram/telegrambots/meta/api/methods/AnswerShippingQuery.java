@@ -1,6 +1,7 @@
 package org.telegram.telegrambots.meta.api.methods;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -10,10 +11,12 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodBoolean;
+import org.telegram.telegrambots.meta.api.objects.ApiResponse;
 import org.telegram.telegrambots.meta.api.objects.payments.ShippingOption;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -34,7 +37,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AnswerShippingQuery extends BotApiMethodBoolean {
+public class AnswerShippingQuery extends BotApiMethod<Boolean> {
     public static final String PATH = "answerShippingQuery";
 
     private static final String SHIPPING_QUERY_ID_FIELD = "shipping_query_id";
@@ -78,5 +81,20 @@ public class AnswerShippingQuery extends BotApiMethodBoolean {
     @Override
     public String getMethod() {
         return PATH;
+    }
+
+    @Override
+    public Boolean deserializeResponse(String answer) throws TelegramApiRequestException {
+        try {
+            ApiResponse<Boolean> result = OBJECT_MAPPER.readValue(answer,
+                    new TypeReference<ApiResponse<Boolean>>(){});
+            if (result.getOk()) {
+                return result.getResult();
+            } else {
+                throw new TelegramApiRequestException("Error answering shipping query", result);
+            }
+        } catch (IOException e) {
+            throw new TelegramApiRequestException("Unable to deserialize response", e);
+        }
     }
 }
