@@ -38,7 +38,6 @@ public class ReplyKeyboardMarkup implements ReplyKeyboard {
     private static final String ONETIMEKEYBOARD_FIELD = "one_time_keyboard";
     private static final String SELECTIVE_FIELD = "selective";
     private static final String INPUTFIELDPLACEHOLDER_FIELD = "input_field_placeholder";
-    private static final String ISPERSISTENT_FIELD = "is_persistent";
 
     @JsonProperty(KEYBOARD_FIELD)
     @NonNull
@@ -63,13 +62,7 @@ public class ReplyKeyboardMarkup implements ReplyKeyboard {
      */
     @JsonProperty(INPUTFIELDPLACEHOLDER_FIELD)
     private String inputFieldPlaceholder;
-    /**
-     * Optional.
-     * Requests clients to always show the keyboard when the regular keyboard is hidden.
-     * Defaults to false, in which case the custom keyboard can be hidden and opened with a keyboard icon.
-     */
-    @JsonProperty(ISPERSISTENT_FIELD)
-    private Boolean isPersistent;
+
     @Override
     public void validate() throws TelegramApiValidationException {
         if (keyboard == null) {

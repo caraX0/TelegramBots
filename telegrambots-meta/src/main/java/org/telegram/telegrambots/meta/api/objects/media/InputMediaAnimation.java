@@ -35,7 +35,6 @@ public class InputMediaAnimation extends InputMedia {
     public static final String HEIGHT_FIELD = "height";
     public static final String DURATION_FIELD = "duration";
     public static final String THUMB_FIELD = "thumb";
-    public static final String HASSPOILER_FIELD = "has_spoiler";
 
     @JsonProperty(WIDTH_FIELD)
     private Integer width; ///< Optional. Animation width
@@ -51,12 +50,6 @@ public class InputMediaAnimation extends InputMedia {
      * if the thumbnail was uploaded using multipart/form-data under <file_attach_name>.
      */
     private InputFile thumb;
-    /**
-     * Optional.
-     * Pass True if the animation must be covered with a spoiler animation
-     */
-    @JsonProperty(HASSPOILER_FIELD)
-    private Boolean hasSpoiler;
 
     public InputMediaAnimation() {
         super();
@@ -67,15 +60,12 @@ public class InputMediaAnimation extends InputMedia {
     }
 
     @Builder
-    public InputMediaAnimation(@NonNull String media, String caption, String parseMode, List<MessageEntity> entities,
-                               boolean isNewMedia, String mediaName, File newMediaFile, InputStream newMediaStream,
-                               Integer width, Integer height, Integer duration, InputFile thumb, Boolean hasSpoiler) {
+    public InputMediaAnimation(@NonNull String media, String caption, String parseMode, List<MessageEntity> entities, boolean isNewMedia, String mediaName, File newMediaFile, InputStream newMediaStream, Integer width, Integer height, Integer duration, InputFile thumb) {
         super(media, caption, parseMode, entities, isNewMedia, mediaName, newMediaFile, newMediaStream);
         this.width = width;
         this.height = height;
         this.duration = duration;
         this.thumb = thumb;
-        this.hasSpoiler = hasSpoiler;
     }
 
     @Override
