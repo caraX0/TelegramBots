@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Tolerate;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -30,7 +31,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SendSticker extends SendMediaBotMethod<Message> {
+public class SendSticker extends PartialBotApiMethod<Message> {
     public static final String PATH = "sendsticker";
 
     public static final String CHATID_FIELD = "chat_id";
@@ -91,22 +92,6 @@ public class SendSticker extends SendMediaBotMethod<Message> {
             replyMarkup.validate();
         }
     }
-
-    @Override
-    public String getMethod() {
-        return null;
-    }
-
-    @Override
-    public InputFile getFile() {
-        return sticker;
-    }
-
-    @Override
-    public String getFileField() {
-        return STICKER_FIELD;
-    }
-
 
     public static class SendStickerBuilder {
 

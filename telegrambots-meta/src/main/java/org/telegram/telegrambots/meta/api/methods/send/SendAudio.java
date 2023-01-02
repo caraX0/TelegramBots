@@ -11,6 +11,7 @@ import lombok.Setter;
 import lombok.Singular;
 import lombok.ToString;
 import lombok.experimental.Tolerate;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
@@ -37,7 +38,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SendAudio extends SendMediaBotMethod<Message> {
+public class SendAudio extends PartialBotApiMethod<Message> {
     public static final String PATH = "sendaudio";
 
     public static final String DURATION_FIELD = "duration";
@@ -124,21 +125,6 @@ public class SendAudio extends SendMediaBotMethod<Message> {
         if (replyMarkup != null) {
             replyMarkup.validate();
         }
-    }
-
-    @Override
-    public String getMethod() {
-        return PATH;
-    }
-
-    @Override
-    public InputFile getFile() {
-        return audio;
-    }
-
-    @Override
-    public String getFileField() {
-        return AUDIO_FIELD;
     }
 
     public static class SendAudioBuilder {

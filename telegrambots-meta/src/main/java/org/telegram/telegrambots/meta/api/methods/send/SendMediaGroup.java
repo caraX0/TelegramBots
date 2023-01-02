@@ -115,11 +115,6 @@ public class SendMediaGroup extends PartialBotApiMethod<ArrayList<Message>> {
         }
     }
 
-    @Override
-    public String getMethod() {
-        return PATH;
-    }
-
     public static class SendMediaGroupBuilder {
 
         @Tolerate
